@@ -43,7 +43,7 @@
 // latest file, without needing devtools — if the number on screen doesn't
 // match what you just deployed, it's a cache/HACS-redownload issue, not
 // a card bug.
-const CARD_VERSION = '1.1.0';
+const CARD_VERSION = '1.2.0-DEBUG-BIKE-ALWAYS-ON';
 
 const I18N = {
   en: {
@@ -75,6 +75,8 @@ const I18N = {
     editorMaxWattHint: 'Used to scale line thickness and animation speed. Set roughly to your typical peak power flow.',
     editorIconSize: 'Icon size (px)',
     editorIconSizeHint: 'Diameter of the node circles. Default: 52px.',
+    editorHouseIconSize: 'House icon size (px, optional)',
+    editorHouseIconSizeHint: 'Overrides the house hub size independently. Default: icon_size × 1.3.',
     cardName: 'PV Flow by Lutarym',
     cardDescription: 'Modern animated power flow diagram for solar, grid, battery, wallbox, heat pump and two extra consumers.',
   },
@@ -107,6 +109,8 @@ const I18N = {
     editorMaxWattHint: 'Bestimmt Linienstärke und Animationsgeschwindigkeit. Ungefähr auf deinen typischen Spitzenfluss einstellen.',
     editorIconSize: 'Symbolgröße (px)',
     editorIconSizeHint: 'Durchmesser der Knoten-Kreise. Standard: 52px.',
+    editorHouseIconSize: 'Haus-Symbolgröße (px, optional)',
+    editorHouseIconSizeHint: 'Überschreibt die Größe des Haus-Hubs unabhängig. Standard: icon_size × 1,3.',
     cardName: 'PV Flow by Lutarym',
     cardDescription: 'Modernes animiertes Energiefluss-Diagramm für PV, Netz, Batterie, Wallbox, Wärmepumpe und zwei frei wählbare Verbraucher.',
   },
@@ -296,39 +300,45 @@ function charHeatpump() {
 
 function charHouse() {
   return `
-    <svg class="pf-char" viewBox="0 0 64 64">
+    <svg class="pf-char" viewBox="0 0 64 64" style="overflow:visible">
       <g class="pf-house-body">
-        <path d="M10 28 L32 10 L54 28" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="17" y="26" width="30" height="24" rx="2" fill="currentColor" opacity="0.14"/>
-        <rect x="17" y="26" width="30" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="3.5"/>
-        <circle cx="24" cy="35" r="2.4" fill="#fff"/><circle cx="24" cy="35" r="1.1" fill="#2b2b2b"/>
-        <circle cx="40" cy="35" r="2.4" fill="#fff"/><circle cx="40" cy="35" r="1.1" fill="#2b2b2b"/>
-        <rect class="pf-house-mouth" x="28" y="41" width="8" height="9" rx="1.5" fill="#2b2b2b" opacity="0.75"/>
+        <path d="M10 26 L32 8 L54 26" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="17" y="24" width="30" height="22" rx="2" fill="currentColor" opacity="0.14"/>
+        <rect x="17" y="24" width="30" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="3.5"/>
+        <circle cx="24" cy="32" r="2.4" fill="#fff"/><circle cx="24" cy="32" r="1.1" fill="#2b2b2b"/>
+        <circle cx="40" cy="32" r="2.4" fill="#fff"/><circle cx="40" cy="32" r="1.1" fill="#2b2b2b"/>
+        <rect class="pf-house-mouth" x="28" y="38" width="8" height="7" rx="1.5" fill="#2b2b2b" opacity="0.75"/>
 
-        <!-- Netzbezug: Haus fährt Fahrrad -->
-        <g class="pf-house-bike" style="display:none">
-          <line x1="17" y1="36" x2="9" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          <line x1="9" y1="45" x2="16" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          <g class="pf-pedal-l" style="transform-origin:24px 50px">
-            <line x1="24" y1="50" x2="19" y2="57" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <!-- Netzbezug: Haus fährt Fahrrad — bewusst groß und unterhalb des
+             Hauses freistehend, damit es auch bei kleiner icon_size klar
+             erkennbar bleibt (reicht absichtlich über die 64er viewBox
+             hinaus; .pf-char hat overflow:visible). -->
+        <g class="pf-house-bike">
+          <line x1="17" y1="34" x2="6" y2="46" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <line x1="6" y1="46" x2="15" y2="46" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <line x1="17" y1="46" x2="47" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+          <g class="pf-pedal-l" style="transform-origin:26px 52px">
+            <line x1="26" y1="52" x2="18" y2="61" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
           </g>
-          <g class="pf-pedal-r" style="transform-origin:36px 50px">
-            <line x1="36" y1="50" x2="41" y2="57" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <g class="pf-pedal-r" style="transform-origin:38px 52px">
+            <line x1="38" y1="52" x2="46" y2="61" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
           </g>
-          <g class="pf-wheel" style="transform-origin:30px 57px">
-            <circle cx="30" cy="57" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
-            <line x1="30" y1="51" x2="30" y2="63" stroke="currentColor" stroke-width="1.2"/>
-            <line x1="24" y1="57" x2="36" y2="57" stroke="currentColor" stroke-width="1.2"/>
+          <g class="pf-wheel" style="transform-origin:32px 61px">
+            <circle cx="32" cy="61" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <line x1="32" y1="52" x2="32" y2="70" stroke="currentColor" stroke-width="1.4"/>
+            <line x1="23" y1="61" x2="41" y2="61" stroke="currentColor" stroke-width="1.4"/>
+            <line x1="26" y1="55" x2="38" y2="67" stroke="currentColor" stroke-width="1.2"/>
+            <line x1="38" y1="55" x2="26" y2="67" stroke="currentColor" stroke-width="1.2"/>
           </g>
         </g>
 
-        <!-- Einspeisung: Haus zockt -->
+        <!-- Einspeisung: Haus zockt — großer Controller direkt vor dem Haus -->
         <g class="pf-house-game" style="display:none">
-          <line x1="17" y1="38" x2="24" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          <line x1="47" y1="38" x2="40" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          <rect x="21" y="45" width="22" height="11" rx="5" fill="currentColor"/>
-          <circle class="pf-thumb-l" cx="27" cy="50.5" r="2" fill="#fff"/>
-          <circle class="pf-thumb-r" cx="37" cy="50.5" r="2" fill="#fff"/>
+          <line x1="15" y1="36" x2="24" y2="48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <line x1="49" y1="36" x2="40" y2="48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <rect x="17" y="47" width="30" height="15" rx="6" fill="currentColor"/>
+          <circle class="pf-thumb-l" cx="25" cy="54.5" r="2.6" fill="#fff"/>
+          <circle class="pf-thumb-r" cx="39" cy="54.5" r="2.6" fill="#fff"/>
         </g>
       </g>
     </svg>`;
@@ -369,6 +379,7 @@ class LutarymPvCard extends HTMLElement {
       extra2_icon:      config.extra2_icon || 'mdi:power-plug',
       max_watt:         Number(config.max_watt) || 5000,
       icon_size:        Number(config.icon_size) || 52,
+      house_icon_size:  Number(config.house_icon_size) || null, // falls back to icon_size*1.3
     };
     this._buildDOM();
   }
@@ -460,7 +471,7 @@ class LutarymPvCard extends HTMLElement {
 
     const housePos = NODE_LAYOUT.house;
     const iconSize = c.icon_size || 52;
-    const houseSize = Math.round(iconSize * 1.3);
+    const houseSize = c.house_icon_size || Math.round(iconSize * 1.3);
 
     // Bidirectional flows (grid, battery) get two overlaid paths, one per
     // direction, toggled via opacity in _update(). Unidirectional flows
@@ -664,7 +675,8 @@ class LutarymPvCard extends HTMLElement {
     if (bikeEl && gameEl) {
       const importing = !!c.entity_grid && grid !== null && grid > 0;
       const exporting = !!c.entity_grid && grid !== null && grid < 0;
-      bikeEl.style.display = importing ? '' : 'none';
+      bikeEl.style.display = ''; // DEBUG-BUILD: forced visible regardless of importing, see below
+      // bikeEl.style.display = importing ? '' : 'none';
       gameEl.style.display = exporting ? '' : 'none';
     }
 
@@ -900,6 +912,7 @@ class LutarymPvCardEditor extends HTMLElement {
       this._numberRow(t(hass, 'editorMaxWatt'), 'max_watt', cfg.max_watt ?? 5000, t(hass, 'editorMaxWattHint')),
       this._numberRow(t(hass, 'editorIconSize'), 'icon_size', cfg.icon_size ?? 52, t(hass, 'editorIconSizeHint')),
     ));
+    form.appendChild(this._numberRow(t(hass, 'editorHouseIconSize'), 'house_icon_size', cfg.house_icon_size ?? '', t(hass, 'editorHouseIconSizeHint')));
   }
 }
 
