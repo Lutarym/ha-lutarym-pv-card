@@ -29,7 +29,7 @@
  *   icon_size: 160                                                        # optional, character size in px (default 160)
  */
 
-const CARD_VERSION = '0.2.0';
+const CARD_VERSION = '0.2.1';
 
 const MOOD_STATES = ['empty', 'weak', 'normal', 'full'];
 const MOOD_LABELS_DE = { empty: 'Leer', weak: 'Schwach', normal: 'Normal', full: 'Voll' };
@@ -70,13 +70,13 @@ function charBattery() {
         <rect x="12" y="17" width="40" height="38" rx="7" fill="none" stroke="currentColor" stroke-width="2.5"/>
         <rect class="pf-batt-fill" x="15" y="38" width="34" height="14" rx="4" fill="currentColor" opacity="0.5"/>
         ${faceMarkup(32, 28, 7, 2.6, 4, true)}
-      </g>
-      <g class="pf-arms" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-        <line x1="12" y1="30" x2="4" y2="14"/>
-        <line x1="52" y1="30" x2="60" y2="14"/>
-        <line x1="4" y1="14" x2="60" y2="14"/>
-        <circle cx="4" cy="14" r="4" fill="currentColor"/>
-        <circle cx="60" cy="14" r="4" fill="currentColor"/>
+        <g class="pf-arms" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+          <line x1="12" y1="30" x2="4" y2="14"/>
+          <line x1="52" y1="30" x2="60" y2="14"/>
+          <line x1="4" y1="14" x2="60" y2="14"/>
+          <circle cx="4" cy="14" r="4" fill="currentColor"/>
+          <circle cx="60" cy="14" r="4" fill="currentColor"/>
+        </g>
       </g>
     </svg>`;
 }
