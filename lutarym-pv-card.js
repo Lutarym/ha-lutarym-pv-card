@@ -485,13 +485,22 @@ class LutarymPvCardEditor extends HTMLElement {
   }
 
   _toggleableEntityRow(label, field, value) {
+    // Whether the row is "open" (selector visible) must survive a
+    // re-render even before an entity has been picked — otherwise the
+    // checkbox is derived purely from !!value, which is still null right
+    // after checking it, and the box appears to un-check itself the
+    // instant setConfig()/_render() runs again.
+    this._openFields = this._openFields || new Set();
+    if (value) this._openFields.add(field);
+    const isOpen = !!value || this._openFields.has(field);
+
     const wrap = document.createElement('div');
     wrap.className = 'row toggle-entity-row';
     const header = document.createElement('div');
     header.className = 'toggle-header';
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = !!value;
+    checkbox.checked = isOpen;
     const labelEl = document.createElement('label');
     labelEl.textContent = label;
     header.appendChild(checkbox);
@@ -500,7 +509,7 @@ class LutarymPvCardEditor extends HTMLElement {
 
     const selectorWrap = document.createElement('div');
     selectorWrap.className = 'toggle-entity-selector';
-    selectorWrap.style.display = value ? '' : 'none';
+    selectorWrap.style.display = isOpen ? '' : 'none';
     const selector = document.createElement('ha-selector');
     selector.hass = this._hass;
     selector.selector = { entity: {} };
@@ -513,8 +522,15 @@ class LutarymPvCardEditor extends HTMLElement {
     wrap.appendChild(selectorWrap);
 
     checkbox.addEventListener('change', ev => {
-      selectorWrap.style.display = ev.target.checked ? '' : 'none';
-      if (!ev.target.checked) { selector.value = ''; this._onChange(field, null); }
+      if (ev.target.checked) {
+        this._openFields.add(field);
+        selectorWrap.style.display = '';
+      } else {
+        this._openFields.delete(field);
+        selectorWrap.style.display = 'none';
+        selector.value = '';
+        this._onChange(field, null);
+      }
     });
     return wrap;
   }
