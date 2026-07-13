@@ -1,6 +1,6 @@
 {
-  "name": "PV Flow by Lutarym",
+  "name": "Battery Workout (Test) by Lutarym",
   "render_readme": true,
   "content_in_root": true,
-  "filename": "lutarym-pv-card.js"
+  "filename": "lutarym-battery-workout-card.js"
 }
