@@ -162,6 +162,109 @@ function widthFor(powerW, maxWatt) {
   const ratio = Math.max(0, Math.min(Math.abs(powerW) / Math.max(maxWatt, 1), 1));
   return (1 + ratio * 3).toFixed(2);
 }
+// Character animation speed: slower baseline than the flow dots (idle
+// motion still runs at zero power — everything keeps moving), scaling
+// down to a lively pace at/above max_watt.
+function charDurationFor(powerW, maxWatt) {
+  const ratio = Math.max(0, Math.min(Math.abs(powerW) / Math.max(maxWatt, 1), 1));
+  return (6 - ratio * 5).toFixed(2); // 6s idle → 1s energetic
+}
+
+// ── Animated node "characters" — small self-contained SVGs, all driven
+//    by CSS transform/opacity keyframes only (no JS animation loop). Each
+//    inherits its stroke/fill color from the surrounding .pf-circle via
+//    currentColor, and its tempo from the --speed custom property set in
+//    _update(). All wrapped by a shared prefers-reduced-motion guard.  ──
+
+function charSun() {
+  return `
+    <svg class="pf-char" viewBox="0 0 64 64">
+      <g class="pf-sun-rays" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+        <line x1="32" y1="3" x2="32" y2="12"/>
+        <line x1="32" y1="52" x2="32" y2="61"/>
+        <line x1="3" y1="32" x2="12" y2="32"/>
+        <line x1="52" y1="32" x2="61" y2="32"/>
+        <line x1="12.5" y1="12.5" x2="18.5" y2="18.5"/>
+        <line x1="45.5" y1="45.5" x2="51.5" y2="51.5"/>
+        <line x1="51.5" y1="12.5" x2="45.5" y2="18.5"/>
+        <line x1="18.5" y1="45.5" x2="12.5" y2="51.5"/>
+      </g>
+      <circle class="pf-sun-core" cx="32" cy="32" r="14" fill="currentColor"/>
+    </svg>`;
+}
+
+function charGrid() {
+  return `
+    <svg class="pf-char" viewBox="0 0 64 64">
+      <g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 8 L15 58 M32 8 L49 58"/>
+        <path d="M21 28 L43 28 M18 40 L46 40"/>
+      </g>
+      <path class="pf-bolt" d="M35 12 L24 34 L31 34 L28 52 L43 27 L34 27 Z" fill="currentColor"/>
+    </svg>`;
+}
+
+function charBattery() {
+  return `
+    <svg class="pf-char" viewBox="0 0 64 64">
+      <rect x="27" y="12" width="10" height="5" rx="1" fill="currentColor"/>
+      <rect x="12" y="17" width="40" height="38" rx="7" fill="none" stroke="currentColor" stroke-width="2.5"/>
+      <rect x="15" y="38" width="34" height="14" rx="4" fill="currentColor" opacity="0.45"/>
+      <circle cx="24" cy="28" r="2.2" fill="currentColor"/>
+      <circle cx="40" cy="28" r="2.2" fill="currentColor"/>
+      <path d="M23 35 Q32 40 41 35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <g class="pf-arms" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+        <line x1="12" y1="30" x2="4" y2="14"/>
+        <line x1="52" y1="30" x2="60" y2="14"/>
+        <line x1="4" y1="14" x2="60" y2="14"/>
+        <circle cx="4" cy="14" r="4" fill="currentColor"/>
+        <circle cx="60" cy="14" r="4" fill="currentColor"/>
+      </g>
+    </svg>`;
+}
+
+function charWallbox() {
+  return `
+    <svg class="pf-char" viewBox="0 0 64 64">
+      <g class="pf-car">
+        <rect x="9" y="32" width="46" height="14" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M15 32 L21 21 L43 21 L49 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="19" cy="48" r="5" fill="currentColor"/>
+        <circle cx="45" cy="48" r="5" fill="currentColor"/>
+      </g>
+      <path class="pf-bolt" d="M34 20 L28 32 L33 32 L30 42 L40 28 L34 28 Z" fill="currentColor"/>
+    </svg>`;
+}
+
+function charHeatpump() {
+  return `
+    <svg class="pf-char" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="23" fill="none" stroke="currentColor" stroke-width="2"/>
+      <g class="pf-fan" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none">
+        <path d="M32 32 Q41 13 53 19 Q41 22 32 32"/>
+        <path d="M32 32 Q51 41 45 53 Q39 42 32 32"/>
+        <path d="M32 32 Q13 42 19 54 Q28 46 32 32"/>
+      </g>
+      <circle cx="32" cy="32" r="4" fill="currentColor"/>
+    </svg>`;
+}
+
+function charHouse() {
+  return `
+    <svg class="pf-char" viewBox="0 0 64 64">
+      <path d="M10 30 L32 11 L54 30" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="17" y="28" width="30" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="3.5"/>
+      <rect class="pf-house-pulse" x="27" y="39" width="10" height="14" fill="currentColor" opacity="0.45"/>
+    </svg>`;
+}
+
+const NODE_CHAR = {
+  pv: charSun,
+  grid: charGrid,
+  battery: charBattery,
+  wallbox: charWallbox,
+  heatpump: charHeatpump,
+};
 
 // ── Main card ────────────────────────────────────────────────────────────
 
@@ -264,10 +367,14 @@ class LutarymPvCard extends HTMLElement {
       const pos = NODE_LAYOUT[key];
       const meta = nodeMeta[key];
       const visible = active[key];
+      const isExtra = key === 'extra1' || key === 'extra2';
+      const inner = isExtra
+        ? `<ha-icon class="pf-char pf-extra-icon" icon="${meta.icon}"></ha-icon>`
+        : NODE_CHAR[key]();
       return `
         <div class="pf-node" id="node-${key}" style="left:${pos.x}%;top:${pos.y}%;${visible ? '' : 'display:none;'}">
-          <div class="pf-circle" style="--nc:${meta.color}">
-            <ha-icon icon="${meta.icon}"></ha-icon>
+          <div class="pf-circle" id="circle-${key}" style="--nc:${meta.color}">
+            ${inner}
           </div>
           <div class="pf-label">${meta.label}</div>
           <div class="pf-value" id="val-${key}">–</div>
@@ -320,9 +427,11 @@ class LutarymPvCard extends HTMLElement {
     border:2px solid var(--nc);
     color: var(--nc);
     transition: box-shadow 0.6s ease;
+    overflow:visible;
   }
   .pf-circle.pf-active { box-shadow: 0 0 0 4px color-mix(in srgb, var(--nc) 18%, transparent); }
-  .pf-circle ha-icon { --mdc-icon-size:24px; }
+  .pf-char { width:32px; height:32px; overflow:visible; }
+  .pf-extra-icon { --mdc-icon-size:24px; }
   .pf-label { font-size:11px; color:var(--secondary-text-color); text-align:center; line-height:1.2; }
   .pf-value { font-size:12px; font-weight:600; color:var(--primary-text-color); text-align:center; }
   .pf-house {
@@ -330,11 +439,32 @@ class LutarymPvCard extends HTMLElement {
     display:flex; flex-direction:column; align-items:center; gap:2px; width:92px;
   }
   .pf-house .pf-circle { width:68px; height:68px; --nc:var(--primary-text-color); }
-  .pf-house .pf-circle ha-icon { --mdc-icon-size:30px; }
+  .pf-house .pf-char { width:42px; height:42px; }
   .pf-house .pf-value { font-size:14px; }
   .pf-dot { r:1.6; }
+
+  /* ── character animations — transform/opacity only, always running at
+     a variable pace so the whole diagram feels alive even at zero power */
+  @keyframes pf-spin { to { transform:rotate(360deg); } }
+  @keyframes pf-flash { 0%,100% { opacity:.3; transform:scale(.9); } 50% { opacity:1; transform:scale(1.1); } }
+  @keyframes pf-lift { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-9px); } }
+  @keyframes pf-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+  @keyframes pf-pulse { 0%,100% { opacity:.35; } 50% { opacity:.85; } }
+
+  .pf-sun-rays { transform-origin:32px 32px; animation: pf-spin var(--speed,6s) linear infinite; }
+  .pf-sun-core { transform-origin:32px 32px; animation: pf-pulse 2.6s ease-in-out infinite; }
+  .pf-bolt { transform-origin:32px 32px; animation: pf-flash var(--speed,6s) ease-in-out infinite; }
+  .pf-arms { transform-origin:32px 22px; animation: pf-lift var(--speed,6s) ease-in-out infinite; }
+  .pf-car { animation: pf-bounce var(--speed,6s) ease-in-out infinite; }
+  .pf-fan { transform-origin:32px 32px; animation: pf-spin var(--speed,6s) linear infinite; }
+  .pf-house-pulse { animation: pf-pulse var(--speed,6s) ease-in-out infinite; }
+  .pf-extra-icon { animation: pf-bounce var(--speed,6s) ease-in-out infinite; }
+
   @media (prefers-reduced-motion: reduce) {
     .pf-svg animateMotion { display:none; }
+    .pf-sun-rays, .pf-sun-core, .pf-bolt, .pf-arms, .pf-car, .pf-fan, .pf-house-pulse, .pf-extra-icon {
+      animation:none;
+    }
   }
 </style>
 <ha-card>
@@ -347,7 +477,7 @@ class LutarymPvCard extends HTMLElement {
     ${nodeDivs}
     <div class="pf-house">
       <div class="pf-circle" id="node-house-circle">
-        <ha-icon icon="${NODE_ICON.house}"></ha-icon>
+        ${charHouse()}
       </div>
       <div class="pf-label">${t(hass, 'house')}</div>
       <div class="pf-value" id="val-house">–</div>
@@ -420,15 +550,20 @@ class LutarymPvCard extends HTMLElement {
       const circle = this.shadowRoot.querySelector(`#node-${key} .pf-circle`);
       if (circle) circle.classList.toggle('pf-active', !!isActive);
     };
+    const setSpeed = (circleId, powerW) => {
+      const circle = this.shadowRoot.getElementById(circleId);
+      if (circle) circle.style.setProperty('--speed', `${charDurationFor(powerW || 0, maxWatt)}s`);
+    };
 
     setVal('val-house', house !== null ? this._fmt(house) : '–');
     this.shadowRoot.getElementById('node-house-circle')?.classList.toggle('pf-active', (pv || 0) > 0 || (grid || 0) !== 0);
+    setSpeed('node-house-circle', house !== null ? house : (pv || 0) + Math.abs(grid || 0));
 
-    if (c.entity_pv) { setVal('val-pv', this._fmt(pv)); setActive('pv', pv > 0); }
-    if (c.entity_wallbox) { setVal('val-wallbox', this._fmt(wallbox)); setActive('wallbox', wallbox > 0); }
-    if (c.entity_heatpump) { setVal('val-heatpump', this._fmt(heatpump)); setActive('heatpump', heatpump > 0); }
-    if (c.extra1_entity) { setVal('val-extra1', this._fmt(extra1)); setActive('extra1', extra1 > 0); }
-    if (c.extra2_entity) { setVal('val-extra2', this._fmt(extra2)); setActive('extra2', extra2 > 0); }
+    if (c.entity_pv) { setVal('val-pv', this._fmt(pv)); setActive('pv', pv > 0); setSpeed('circle-pv', pv); }
+    if (c.entity_wallbox) { setVal('val-wallbox', this._fmt(wallbox)); setActive('wallbox', wallbox > 0); setSpeed('circle-wallbox', wallbox); }
+    if (c.entity_heatpump) { setVal('val-heatpump', this._fmt(heatpump)); setActive('heatpump', heatpump > 0); setSpeed('circle-heatpump', heatpump); }
+    if (c.extra1_entity) { setVal('val-extra1', this._fmt(extra1)); setActive('extra1', extra1 > 0); setSpeed('circle-extra1', extra1); }
+    if (c.extra2_entity) { setVal('val-extra2', this._fmt(extra2)); setActive('extra2', extra2 > 0); setSpeed('circle-extra2', extra2); }
 
     if (c.entity_grid) {
       const imp = grid !== null && grid > 0 ? grid : 0;
@@ -436,6 +571,7 @@ class LutarymPvCard extends HTMLElement {
       const gridArrow = imp > 0 ? '↓' : (exp > 0 ? '↑' : '·');
       setVal('val-grid', grid !== null ? `${gridArrow} ${this._fmt(imp || exp)}` : '–');
       setActive('grid', imp > 0 || exp > 0);
+      setSpeed('circle-grid', imp || exp);
     }
     if (c.entity_battery_power) {
       const dis = battPower !== null && battPower > 0 ? battPower : 0;
@@ -443,6 +579,7 @@ class LutarymPvCard extends HTMLElement {
       const socTxt = battSoc !== null ? `${Math.round(battSoc)}% · ` : '';
       setVal('val-battery', battPower !== null ? `${socTxt}${this._fmt(dis || chg)}` : (battSoc !== null ? `${Math.round(battSoc)}%` : '–'));
       setActive('battery', dis > 0 || chg > 0);
+      setSpeed('circle-battery', dis || chg);
     }
 
     this._setFlow('pv', pv, maxWatt);
