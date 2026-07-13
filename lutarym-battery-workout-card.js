@@ -29,7 +29,7 @@
  *   icon_size: 160                                                        # optional, character size in px (default 160)
  */
 
-const CARD_VERSION = '0.2.1';
+const CARD_VERSION = '0.3.0';
 
 const MOOD_STATES = ['empty', 'weak', 'normal', 'full'];
 const MOOD_LABELS_DE = { empty: 'Leer', weak: 'Schwach', normal: 'Normal', full: 'Voll' };
