@@ -43,7 +43,7 @@
 // latest file, without needing devtools — if the number on screen doesn't
 // match what you just deployed, it's a cache/HACS-redownload issue, not
 // a card bug.
-const CARD_VERSION = '1.3.0';
+const CARD_VERSION = '1.3.1-DEBUGTEXT';
 
 const I18N = {
   en: {
@@ -602,6 +602,7 @@ class LutarymPvCard extends HTMLElement {
       </div>
       <div class="pf-label">${t(hass, 'house')}</div>
       <div class="pf-value" id="val-house">–</div>
+      <div id="pf-debug" style="font-size:9px;color:var(--secondary-text-color);opacity:0.7;text-align:center;">–</div>
     </div>
   </div>
 </ha-card>
@@ -689,6 +690,8 @@ class LutarymPvCard extends HTMLElement {
       const exporting = !!c.entity_grid && grid !== null && grid < 0;
       bikeEl.style.display = importing ? '' : 'none';
       gameEl.style.display = exporting ? '' : 'none';
+      const dbg = this.shadowRoot.getElementById('pf-debug');
+      if (dbg) dbg.textContent = `grid=${c.entity_grid || 'n/a'} val=${grid} imp=${importing} exp=${exporting}`;
     }
 
     if (c.entity_pv) { setVal('val-pv', this._fmt(pv)); setActive('pv', pv > 0); setSpeed('circle-pv', pv); }
