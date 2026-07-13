@@ -29,7 +29,7 @@
  *   icon_size: 160                                                        # optional, character size in px (default 160)
  */
 
-const CARD_VERSION = '0.3.0';
+const CARD_VERSION = '0.4.0';
 
 const MOOD_STATES = ['empty', 'weak', 'normal', 'full'];
 const MOOD_LABELS_DE = { empty: 'Leer', weak: 'Schwach', normal: 'Normal', full: 'Voll' };
@@ -43,7 +43,7 @@ function lutarymLang(hass) {
 // Shared cartoon face — two blinking googly eyes, a curved mouth, and
 // optional blush. Identical to the one used in lutarym-pv-card, so the
 // character can be copy-pasted back 1:1 once verified here.
-function faceMarkup(cx, cy, dx, r, mouthDy, blush) {
+function eyesMarkup(cx, cy, dx, r) {
   return `
     <g class="pf-eye pf-eye-l" style="transform-origin:${cx - dx}px ${cy}px">
       <circle cx="${cx - dx}" cy="${cy}" r="${r}" fill="#fff"/>
@@ -52,7 +52,12 @@ function faceMarkup(cx, cy, dx, r, mouthDy, blush) {
     <g class="pf-eye pf-eye-r" style="transform-origin:${cx + dx}px ${cy}px">
       <circle cx="${cx + dx}" cy="${cy}" r="${r}" fill="#fff"/>
       <circle cx="${cx + dx}" cy="${cy}" r="${(r * 0.45).toFixed(1)}" fill="#2b2b2b"/>
-    </g>
+    </g>`;
+}
+
+function faceMarkup(cx, cy, dx, r, mouthDy, blush) {
+  return `
+    ${eyesMarkup(cx, cy, dx, r)}
     <path class="pf-mouth" d="M${cx - dx - 1} ${cy + mouthDy} Q${cx} ${cy + mouthDy + 7} ${cx + dx + 1} ${cy + mouthDy}" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
     ${blush ? `
     <circle cx="${cx - dx - 4}" cy="${cy + 4}" r="2.1" fill="#ff8a8a" opacity="0.55"/>
@@ -61,6 +66,12 @@ function faceMarkup(cx, cy, dx, r, mouthDy, blush) {
 
 // currentColor is driven by CSS on the wrapping element (no circle/border
 // anymore — the battery just floats freely on the card background).
+// Four mood states live inside the same shared body, toggled via display
+// so switching moods doesn't require rebuilding the DOM:
+//   empty  → erschöpft, Arme hängen schlaff, kein Heben
+//   weak   → außer Puste, zittriger schwacher Hebeversuch
+//   normal → hebt konzentriert die Hantel (Standardzustand)
+//   full   → satt, dicker Bauch, macht gar nichts mehr
 function charBattery() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
@@ -69,13 +80,48 @@ function charBattery() {
         <rect x="12" y="17" width="40" height="38" rx="7" fill="currentColor" opacity="0.16"/>
         <rect x="12" y="17" width="40" height="38" rx="7" fill="none" stroke="currentColor" stroke-width="2.5"/>
         <rect class="pf-batt-fill" x="15" y="38" width="34" height="14" rx="4" fill="currentColor" opacity="0.5"/>
-        ${faceMarkup(32, 28, 7, 2.6, 4, true)}
-        <g class="pf-arms" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-          <line x1="12" y1="30" x2="4" y2="14"/>
-          <line x1="52" y1="30" x2="60" y2="14"/>
-          <line x1="4" y1="14" x2="60" y2="14"/>
-          <circle cx="4" cy="14" r="4" fill="currentColor"/>
-          <circle cx="60" cy="14" r="4" fill="currentColor"/>
+
+        <g class="pf-state-empty" style="display:none">
+          <path d="M25 26 Q27 29 29 26" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M35 26 Q37 29 39 26" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M26 35 Q32 33 38 35" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <line x1="12" y1="30" x2="7" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="52" y1="30" x2="57" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M44 20 Q47 25 44 29 Q41 25 44 20" fill="#5bb8ff" opacity="0.7"/>
+        </g>
+
+        <g class="pf-state-weak" style="display:none">
+          ${eyesMarkup(32, 28, 7, 2.6)}
+          <ellipse cx="32" cy="37" rx="3" ry="4" fill="#2b2b2b"/>
+          <path d="M19 19 Q22 24 19 28 Q16 24 19 19" fill="#5bb8ff" opacity="0.7"/>
+          <path d="M45 19 Q48 24 45 28 Q42 24 45 19" fill="#5bb8ff" opacity="0.7"/>
+          <g class="pf-arms-weak" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <line x1="12" y1="30" x2="6" y2="20"/>
+            <line x1="52" y1="30" x2="58" y2="20"/>
+            <line x1="6" y1="20" x2="58" y2="20"/>
+            <circle cx="6" cy="20" r="3.5" fill="currentColor"/>
+            <circle cx="58" cy="20" r="3.5" fill="currentColor"/>
+          </g>
+        </g>
+
+        <g class="pf-state-normal" style="display:none">
+          ${faceMarkup(32, 28, 7, 2.6, 4, true)}
+          <g class="pf-arms" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <line x1="12" y1="30" x2="4" y2="14"/>
+            <line x1="52" y1="30" x2="60" y2="14"/>
+            <line x1="4" y1="14" x2="60" y2="14"/>
+            <circle cx="4" cy="14" r="4" fill="currentColor"/>
+            <circle cx="60" cy="14" r="4" fill="currentColor"/>
+          </g>
+        </g>
+
+        <g class="pf-state-full" style="display:none">
+          <ellipse cx="32" cy="47" rx="18" ry="11" fill="currentColor" opacity="0.22"/>
+          <path d="M24 27 Q26 24 28 27" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M36 27 Q38 24 40 27" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M25 33 Q32 39 39 33" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M14 32 Q19 41 27 44" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M50 32 Q45 41 37 44" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/>
         </g>
       </g>
     </svg>`;
@@ -85,6 +131,7 @@ function charDurationFor(powerW, maxWatt) {
   const ratio = Math.max(0, Math.min(Math.abs(powerW) / Math.max(maxWatt, 1), 1));
   return (6 - ratio * 5).toFixed(2); // 6s idle → 1s energetic
 }
+
 
 class LutarymBatteryWorkoutCard extends HTMLElement {
   constructor() {
@@ -99,10 +146,31 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
       entity_charge_power: config.entity_charge_power || null,
       entity_soc: config.entity_soc || null,
       mood_state: MOOD_STATES.includes(config.mood_state) ? config.mood_state : 'normal',
+      threshold_empty_pct: Number(config.threshold_empty_pct) || 15,
+      threshold_weak_pct: Number(config.threshold_weak_pct) || 40,
+      threshold_full_pct: Number(config.threshold_full_pct) || 90,
       max_watt: Number(config.max_watt) || 3000,
       icon_size: Number(config.icon_size) || 160,
     };
     this._buildDOM();
+  }
+
+  // If entity_soc is configured, the mood is derived automatically from
+  // its value against the three thresholds. Without entity_soc, the
+  // manual mood_state dropdown acts as a fixed override — useful for
+  // previewing a state or when no SOC sensor exists.
+  _computeMood() {
+    const c = this._config;
+    if (c.entity_soc) {
+      const soc = this._val(c.entity_soc);
+      if (soc !== null) {
+        if (soc <= c.threshold_empty_pct) return 'empty';
+        if (soc <= c.threshold_weak_pct) return 'weak';
+        if (soc <= c.threshold_full_pct) return 'normal';
+        return 'full';
+      }
+    }
+    return MOOD_STATES.includes(c.mood_state) ? c.mood_state : 'normal';
   }
 
   set hass(hass) { this._hass = hass; this._update(); }
@@ -145,14 +213,20 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
   @keyframes pf-wobble { 0%,100% { transform:scale(1,1) rotate(0deg); } 50% { transform:scale(1.1,0.88) rotate(-3deg) translateY(2px); } }
   @keyframes pf-lift { 0%,100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-9px) rotate(-4deg); } }
   @keyframes pf-blink { 0%,88%,100% { transform:scaleY(1); } 94% { transform:scaleY(0.1); } }
+  @keyframes pf-droop { 0%,100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(2px) rotate(1deg); } }
+  @keyframes pf-breathe { 0%,100% { transform:scale(1,1); } 50% { transform:scale(1.035,1.035); } }
+  @keyframes pf-shake { 0%,100% { transform:translateY(0) rotate(0deg); } 20% { transform:translateY(-2px) rotate(-2deg); } 40% { transform:translateY(0) rotate(2deg); } 60% { transform:translateY(-3px) rotate(-3deg); } 80% { transform:translateY(0) rotate(1deg); } }
 
   .pf-wobble-body { transform-origin:32px 42px; animation: pf-wobble var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-wobble-body.pf-mood-empty { animation: pf-droop 4s ease-in-out infinite; }
+  .pf-wobble-body.pf-mood-full { animation: pf-breathe 3.5s ease-in-out infinite; }
   .pf-arms { transform-origin:32px 22px; animation: pf-lift var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-arms-weak { transform-origin:32px 22px; animation: pf-shake calc(var(--speed,6s) * 0.5) ease-in-out infinite; }
   .pf-eye { animation: pf-blink 4.4s ease-in-out infinite; }
   .pf-eye-r { animation-delay: 0.15s; }
 
   @media (prefers-reduced-motion: reduce) {
-    .pf-wobble-body, .pf-arms, .pf-eye { animation:none; }
+    .pf-wobble-body, .pf-wobble-body.pf-mood-empty, .pf-wobble-body.pf-mood-full, .pf-arms, .pf-arms-weak, .pf-eye { animation:none; }
   }
 </style>
 <ha-card>
@@ -171,10 +245,21 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
     const dis = this._val(c.entity_discharge_power);
     const chg = this._val(c.entity_charge_power);
     const soc = this._val(c.entity_soc);
+    const mood = this._computeMood();
 
     const speedBasis = Math.max(dis || 0, chg || 0);
     const charEl = this.shadowRoot.querySelector('.pf-char');
     if (charEl) charEl.style.setProperty('--speed', `${charDurationFor(speedBasis, c.max_watt)}s`);
+
+    MOOD_STATES.forEach(m => {
+      const el = this.shadowRoot.querySelector(`.pf-state-${m}`);
+      if (el) el.style.display = (m === mood) ? '' : 'none';
+    });
+    const wobbleBody = this.shadowRoot.querySelector('.pf-wobble-body');
+    if (wobbleBody) {
+      wobbleBody.classList.toggle('pf-mood-empty', mood === 'empty');
+      wobbleBody.classList.toggle('pf-mood-full', mood === 'full');
+    }
 
     const socTxt = soc !== null ? `${Math.round(soc)}% · ` : '';
     let flowTxt = '–';
@@ -185,7 +270,7 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
     if (val) val.textContent = soc !== null || dis !== null || chg !== null ? `${socTxt}${flowTxt}` : '–';
 
     const dbg = this.shadowRoot.getElementById('pf-debug');
-    if (dbg) dbg.textContent = `dis=${dis} chg=${chg} soc=${soc} mood=${c.mood_state} speed=${charDurationFor(speedBasis, c.max_watt)}s`;
+    if (dbg) dbg.textContent = `dis=${dis} chg=${chg} soc=${soc} mood=${mood} speed=${charDurationFor(speedBasis, c.max_watt)}s`;
   }
 }
 
@@ -323,6 +408,9 @@ class LutarymBatteryWorkoutCardEditor extends HTMLElement {
       ? 'Wird aktuell noch nicht ausgewertet — Platzhalter für kommende Zustands-Animationen.'
       : 'Not evaluated yet — placeholder for upcoming mood-driven animations.';
     form.appendChild(hint);
+    form.appendChild(this._numberRow(lang === 'de' ? 'Schwelle „leer" (%)' : 'Empty threshold (%)', 'threshold_empty_pct', cfg.threshold_empty_pct ?? 15));
+    form.appendChild(this._numberRow(lang === 'de' ? 'Schwelle „wenig" (%)' : 'Weak threshold (%)', 'threshold_weak_pct', cfg.threshold_weak_pct ?? 40));
+    form.appendChild(this._numberRow(lang === 'de' ? 'Schwelle „voll" (%)' : 'Full threshold (%)', 'threshold_full_pct', cfg.threshold_full_pct ?? 90));
     form.appendChild(this._numberRow(lang === 'de' ? 'Referenzleistung (W)' : 'Reference power (W)', 'max_watt', cfg.max_watt ?? 3000));
     form.appendChild(this._numberRow(lang === 'de' ? 'Symbolgröße (px)' : 'Icon size (px)', 'icon_size', cfg.icon_size ?? 160));
   }

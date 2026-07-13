@@ -20,12 +20,21 @@ sensor) — feed whichever your battery integration exposes. Animation
 speed scales with whichever of discharge/charge is currently higher,
 relative to `max_watt`.
 
-## Mood state (reserved)
+## Mood state (SOC-driven)
 
-`mood_state` accepts `empty` / `weak` / `normal` / `full` and is exposed
-in the visual editor as a dropdown, but **not yet wired to the visuals**
-— it's a placeholder for upcoming state-driven animation variants (e.g.
-a tired battery at low SOC vs. a pumped one at high SOC).
+Four states, auto-derived from `entity_soc` against three thresholds
+(`threshold_empty_pct` default 15, `threshold_weak_pct` default 40,
+`threshold_full_pct` default 90):
+
+| State | SOC range (defaults) | Character |
+|---|---|---|
+| `empty` | ≤ 15% | Exhausted — arms hang limp, tired droopy eyes, one sweat drop |
+| `weak` | 15–40% | Out of breath — panting mouth, two sweat drops, shaky weak lift attempt |
+| `normal` | 40–90% | Focused — lifts the barbell overhead (the original animation) |
+| `full` | > 90% | Content — round belly, satisfied closed-eye smile, arms resting, does nothing |
+
+Without `entity_soc` configured, the `mood_state` dropdown in the visual
+editor acts as a fixed manual override — useful for previewing a state.
 
 ## Installation via HACS
 
