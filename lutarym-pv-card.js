@@ -33,6 +33,7 @@
  *   extra2_name: Sonstiges                                                # optional
  *   extra2_icon: mdi:dots-horizontal                                       # optional
  *   max_watt: 5000                                                          # optional, reference power for line thickness/speed scaling (default 5000)
+ *   icon_size: 52                                                            # optional, node circle diameter in px (default 52)
  */
 
 // ── Simple i18n helper (falls back to English) ─────────────────────────
@@ -65,6 +66,8 @@ const I18N = {
     editorTitleHint: 'Optional — default: {title}',
     editorMaxWatt: 'Reference power (W)',
     editorMaxWattHint: 'Used to scale line thickness and animation speed. Set roughly to your typical peak power flow.',
+    editorIconSize: 'Icon size (px)',
+    editorIconSizeHint: 'Diameter of the node circles. Default: 52px.',
     cardName: 'PV Flow by Lutarym',
     cardDescription: 'Modern animated power flow diagram for solar, grid, battery, wallbox, heat pump and two extra consumers.',
   },
@@ -95,6 +98,8 @@ const I18N = {
     editorTitleHint: 'Optional — Standard: {title}',
     editorMaxWatt: 'Referenzleistung (W)',
     editorMaxWattHint: 'Bestimmt Linienstärke und Animationsgeschwindigkeit. Ungefähr auf deinen typischen Spitzenfluss einstellen.',
+    editorIconSize: 'Symbolgröße (px)',
+    editorIconSizeHint: 'Durchmesser der Knoten-Kreise. Standard: 52px.',
     cardName: 'PV Flow by Lutarym',
     cardDescription: 'Modernes animiertes Energiefluss-Diagramm für PV, Netz, Batterie, Wallbox, Wärmepumpe und zwei frei wählbare Verbraucher.',
   },
@@ -172,47 +177,73 @@ function charDurationFor(powerW, maxWatt) {
 
 // ── Animated node "characters" — small self-contained SVGs, all driven
 //    by CSS transform/opacity keyframes only (no JS animation loop). Each
-//    inherits its stroke/fill color from the surrounding .pf-circle via
+//    inherits its body color from the surrounding .pf-circle via
 //    currentColor, and its tempo from the --speed custom property set in
 //    _update(). All wrapped by a shared prefers-reduced-motion guard.  ──
+
+// Shared cartoon face — two blinking googly eyes, a curved mouth, and
+// optional blush. Reused by every creature so they all read as the same
+// comic "species" regardless of body shape.
+function faceMarkup(cx, cy, dx, r, mouthDy, blush) {
+  return `
+    <g class="pf-eye pf-eye-l" style="transform-origin:${cx - dx}px ${cy}px">
+      <circle cx="${cx - dx}" cy="${cy}" r="${r}" fill="#fff"/>
+      <circle cx="${cx - dx}" cy="${cy}" r="${(r * 0.45).toFixed(1)}" fill="#2b2b2b"/>
+    </g>
+    <g class="pf-eye pf-eye-r" style="transform-origin:${cx + dx}px ${cy}px">
+      <circle cx="${cx + dx}" cy="${cy}" r="${r}" fill="#fff"/>
+      <circle cx="${cx + dx}" cy="${cy}" r="${(r * 0.45).toFixed(1)}" fill="#2b2b2b"/>
+    </g>
+    <path class="pf-mouth" d="M${cx - dx - 1} ${cy + mouthDy} Q${cx} ${cy + mouthDy + 7} ${cx + dx + 1} ${cy + mouthDy}" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+    ${blush ? `
+    <circle cx="${cx - dx - 4}" cy="${cy + 4}" r="2.1" fill="#ff8a8a" opacity="0.55"/>
+    <circle cx="${cx + dx + 4}" cy="${cy + 4}" r="2.1" fill="#ff8a8a" opacity="0.55"/>` : ''}`;
+}
 
 function charSun() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
-      <g class="pf-sun-rays" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-        <line x1="32" y1="3" x2="32" y2="12"/>
-        <line x1="32" y1="52" x2="32" y2="61"/>
-        <line x1="3" y1="32" x2="12" y2="32"/>
-        <line x1="52" y1="32" x2="61" y2="32"/>
-        <line x1="12.5" y1="12.5" x2="18.5" y2="18.5"/>
-        <line x1="45.5" y1="45.5" x2="51.5" y2="51.5"/>
-        <line x1="51.5" y1="12.5" x2="45.5" y2="18.5"/>
-        <line x1="18.5" y1="45.5" x2="12.5" y2="51.5"/>
+      <g class="pf-sun-rays" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+        <line x1="32" y1="2" x2="32" y2="11"/>
+        <line x1="32" y1="53" x2="32" y2="62"/>
+        <line x1="2" y1="32" x2="11" y2="32"/>
+        <line x1="53" y1="32" x2="62" y2="32"/>
+        <line x1="11.8" y1="11.8" x2="18" y2="18"/>
+        <line x1="46" y1="46" x2="52.2" y2="52.2"/>
+        <line x1="52.2" y1="11.8" x2="46" y2="18"/>
+        <line x1="18" y1="46" x2="11.8" y2="52.2"/>
       </g>
-      <circle class="pf-sun-core" cx="32" cy="32" r="14" fill="currentColor"/>
+      <g class="pf-wobble-body">
+        <circle cx="32" cy="32" r="16" fill="currentColor"/>
+        ${faceMarkup(32, 31, 6, 3, 5, true)}
+      </g>
     </svg>`;
 }
 
 function charGrid() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
-      <g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M32 8 L15 58 M32 8 L49 58"/>
-        <path d="M21 28 L43 28 M18 40 L46 40"/>
+      <g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+        <path d="M32 20 L20 60 M32 20 L44 60"/>
+        <path d="M24 38 L40 38"/>
       </g>
-      <path class="pf-bolt" d="M35 12 L24 34 L31 34 L28 52 L43 27 L34 27 Z" fill="currentColor"/>
+      <g class="pf-zap-body">
+        <path d="M34 3 L21 28 L29 28 L25 47 L44 22 L34 22 Z" fill="currentColor"/>
+        ${faceMarkup(30, 22, 5, 2.4, 5, true)}
+      </g>
     </svg>`;
 }
 
 function charBattery() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
-      <rect x="27" y="12" width="10" height="5" rx="1" fill="currentColor"/>
-      <rect x="12" y="17" width="40" height="38" rx="7" fill="none" stroke="currentColor" stroke-width="2.5"/>
-      <rect x="15" y="38" width="34" height="14" rx="4" fill="currentColor" opacity="0.45"/>
-      <circle cx="24" cy="28" r="2.2" fill="currentColor"/>
-      <circle cx="40" cy="28" r="2.2" fill="currentColor"/>
-      <path d="M23 35 Q32 40 41 35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <g class="pf-wobble-body">
+        <rect x="27" y="12" width="10" height="5" rx="1" fill="currentColor"/>
+        <rect x="12" y="17" width="40" height="38" rx="7" fill="currentColor" opacity="0.16"/>
+        <rect x="12" y="17" width="40" height="38" rx="7" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <rect x="15" y="38" width="34" height="14" rx="4" fill="currentColor" opacity="0.5"/>
+        ${faceMarkup(32, 28, 7, 2.6, 4, true)}
+      </g>
       <g class="pf-arms" stroke="currentColor" stroke-width="3" stroke-linecap="round">
         <line x1="12" y1="30" x2="4" y2="14"/>
         <line x1="52" y1="30" x2="60" y2="14"/>
@@ -227,10 +258,12 @@ function charWallbox() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
       <g class="pf-car">
-        <rect x="9" y="32" width="46" height="14" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/>
-        <path d="M15 32 L21 21 L43 21 L49 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
-        <circle cx="19" cy="48" r="5" fill="currentColor"/>
-        <circle cx="45" cy="48" r="5" fill="currentColor"/>
+        <rect x="9" y="32" width="46" height="14" rx="6" fill="currentColor" opacity="0.16"/>
+        <rect x="9" y="32" width="46" height="14" rx="6" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M15 32 L21 21 L43 21 L49 32" fill="currentColor" opacity="0.25" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+        ${faceMarkup(32, 27, 6, 2.3, 3, false)}
+        <g class="pf-wheel-l"><circle cx="19" cy="48" r="5" fill="currentColor"/><line x1="19" y1="45" x2="19" y2="51" stroke="var(--card-background-color,#fff)" stroke-width="1.4"/></g>
+        <g class="pf-wheel-r"><circle cx="45" cy="48" r="5" fill="currentColor"/><line x1="45" y1="45" x2="45" y2="51" stroke="var(--card-background-color,#fff)" stroke-width="1.4"/></g>
       </g>
       <path class="pf-bolt" d="M34 20 L28 32 L33 32 L30 42 L40 28 L34 28 Z" fill="currentColor"/>
     </svg>`;
@@ -239,22 +272,32 @@ function charWallbox() {
 function charHeatpump() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
-      <circle cx="32" cy="32" r="23" fill="none" stroke="currentColor" stroke-width="2"/>
-      <g class="pf-fan" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none">
-        <path d="M32 32 Q41 13 53 19 Q41 22 32 32"/>
-        <path d="M32 32 Q51 41 45 53 Q39 42 32 32"/>
-        <path d="M32 32 Q13 42 19 54 Q28 46 32 32"/>
+      <g class="pf-fan" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.9">
+        <path d="M32 20 Q41 3 51 8 Q41 11 32 20"/>
+        <path d="M32 20 Q49 27 44 38 Q38 29 32 20"/>
+        <path d="M32 20 Q15 29 20 40 Q28 33 32 20"/>
       </g>
-      <circle cx="32" cy="32" r="4" fill="currentColor"/>
+      <g class="pf-puff-body">
+        <circle cx="32" cy="34" r="18" fill="currentColor" opacity="0.18"/>
+        <circle cx="32" cy="34" r="18" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        ${faceMarkup(32, 32, 6, 2.6, 4, false)}
+        <circle class="pf-cheek-l" cx="19" cy="38" r="3" fill="currentColor" opacity="0.5"/>
+        <circle class="pf-cheek-r" cx="45" cy="38" r="3" fill="currentColor" opacity="0.5"/>
+      </g>
     </svg>`;
 }
 
 function charHouse() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
-      <path d="M10 30 L32 11 L54 30" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x="17" y="28" width="30" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="3.5"/>
-      <rect class="pf-house-pulse" x="27" y="39" width="10" height="14" fill="currentColor" opacity="0.45"/>
+      <g class="pf-house-body">
+        <path d="M10 30 L32 11 L54 30" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="17" y="28" width="30" height="25" rx="2" fill="currentColor" opacity="0.14"/>
+        <rect x="17" y="28" width="30" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="3.5"/>
+        <circle cx="24" cy="37" r="2.6" fill="#fff"/><circle cx="24" cy="37" r="1.2" fill="#2b2b2b"/>
+        <circle cx="40" cy="37" r="2.6" fill="#fff"/><circle cx="40" cy="37" r="1.2" fill="#2b2b2b"/>
+        <rect class="pf-house-mouth" x="28" y="43" width="8" height="10" rx="1.5" fill="#2b2b2b" opacity="0.75"/>
+      </g>
     </svg>`;
 }
 
@@ -292,6 +335,7 @@ class LutarymPvCard extends HTMLElement {
       extra2_name:      config.extra2_name || null,
       extra2_icon:      config.extra2_icon || 'mdi:power-plug',
       max_watt:         Number(config.max_watt) || 5000,
+      icon_size:        Number(config.icon_size) || 52,
     };
     this._buildDOM();
   }
@@ -382,6 +426,8 @@ class LutarymPvCard extends HTMLElement {
     }).join('');
 
     const housePos = NODE_LAYOUT.house;
+    const iconSize = c.icon_size || 52;
+    const houseSize = Math.round(iconSize * 1.3);
 
     // Bidirectional flows (grid, battery) get two overlaid paths, one per
     // direction, toggled via opacity in _update(). Unidirectional flows
@@ -410,7 +456,7 @@ class LutarymPvCard extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
 <style>
-  :host { display:block; width:100%; height:100%; box-sizing:border-box; font-family:'Segoe UI',Roboto,sans-serif; }
+  :host { display:block; width:100%; height:100%; box-sizing:border-box; font-family:'Segoe UI',Roboto,sans-serif; --comic-ease:cubic-bezier(.65,-0.45,.3,1.4); }
   ha-card { width:100%; height:100%; box-sizing:border-box; padding:16px 14px; display:flex; flex-direction:column; gap:10px; }
   .pf-title { font-size:15px; font-weight:600; letter-spacing:0.02em; color:var(--primary-text-color); }
   .pf-stage { position:relative; width:100%; padding-top:66%; flex:1; }
@@ -418,10 +464,10 @@ class LutarymPvCard extends HTMLElement {
   .pf-node {
     position:absolute; transform:translate(-50%,-50%);
     display:flex; flex-direction:column; align-items:center; gap:2px;
-    width:76px;
+    width:${iconSize + 24}px;
   }
   .pf-circle {
-    width:52px; height:52px; border-radius:50%;
+    width:${iconSize}px; height:${iconSize}px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
     background: color-mix(in srgb, var(--nc) 14%, var(--card-background-color, #fff));
     border:2px solid var(--nc);
@@ -430,39 +476,52 @@ class LutarymPvCard extends HTMLElement {
     overflow:visible;
   }
   .pf-circle.pf-active { box-shadow: 0 0 0 4px color-mix(in srgb, var(--nc) 18%, transparent); }
-  .pf-char { width:32px; height:32px; overflow:visible; }
-  .pf-extra-icon { --mdc-icon-size:24px; }
+  .pf-char { width:${Math.round(iconSize * 0.62)}px; height:${Math.round(iconSize * 0.62)}px; overflow:visible; }
+  .pf-extra-icon { --mdc-icon-size:${Math.round(iconSize * 0.46)}px; }
   .pf-label { font-size:11px; color:var(--secondary-text-color); text-align:center; line-height:1.2; }
   .pf-value { font-size:12px; font-weight:600; color:var(--primary-text-color); text-align:center; }
   .pf-house {
     position:absolute; left:${housePos.x}%; top:${housePos.y}%; transform:translate(-50%,-50%);
-    display:flex; flex-direction:column; align-items:center; gap:2px; width:92px;
+    display:flex; flex-direction:column; align-items:center; gap:2px; width:${houseSize + 24}px;
   }
-  .pf-house .pf-circle { width:68px; height:68px; --nc:var(--primary-text-color); }
-  .pf-house .pf-char { width:42px; height:42px; }
+  .pf-house .pf-circle { width:${houseSize}px; height:${houseSize}px; --nc:var(--primary-text-color); }
+  .pf-house .pf-char { width:${Math.round(houseSize * 0.62)}px; height:${Math.round(houseSize * 0.62)}px; }
   .pf-house .pf-value { font-size:14px; }
   .pf-dot { r:1.6; }
 
-  /* ── character animations — transform/opacity only, always running at
-     a variable pace so the whole diagram feels alive even at zero power */
+  /* ── comic-style character animations — bouncy overshoot easing via
+     --comic-ease, transform/opacity only, always running at a variable
+     pace (--speed) so the whole diagram feels alive even at zero power */
   @keyframes pf-spin { to { transform:rotate(360deg); } }
-  @keyframes pf-flash { 0%,100% { opacity:.3; transform:scale(.9); } 50% { opacity:1; transform:scale(1.1); } }
-  @keyframes pf-lift { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-9px); } }
-  @keyframes pf-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
-  @keyframes pf-pulse { 0%,100% { opacity:.35; } 50% { opacity:.85; } }
+  @keyframes pf-wobble { 0%,100% { transform:scale(1,1) rotate(0deg); } 50% { transform:scale(1.1,0.88) rotate(-3deg) translateY(2px); } }
+  @keyframes pf-zap { 0%,100% { transform:translateX(0) rotate(0deg); } 25% { transform:translateX(-2.5px) rotate(-6deg); } 50% { transform:translateX(0) rotate(0deg); } 75% { transform:translateX(2.5px) rotate(6deg); } }
+  @keyframes pf-lift { 0%,100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-9px) rotate(-4deg); } }
+  @keyframes pf-bounce { 0%,100% { transform:translateY(0) scale(1,1); } 45% { transform:translateY(-5px) scale(0.96,1.06); } 55% { transform:translateY(-5px) scale(1.06,0.94); } }
+  @keyframes pf-puff { 0%,100% { transform:scale(1); opacity:0.5; } 50% { transform:scale(1.35); opacity:0.85; } }
+  @keyframes pf-blink { 0%,88%,100% { transform:scaleY(1); } 94% { transform:scaleY(0.1); } }
+  @keyframes pf-house-talk { 0%,100% { transform:scaleY(1); } 50% { transform:scaleY(0.35); } }
 
   .pf-sun-rays { transform-origin:32px 32px; animation: pf-spin var(--speed,6s) linear infinite; }
-  .pf-sun-core { transform-origin:32px 32px; animation: pf-pulse 2.6s ease-in-out infinite; }
-  .pf-bolt { transform-origin:32px 32px; animation: pf-flash var(--speed,6s) ease-in-out infinite; }
-  .pf-arms { transform-origin:32px 22px; animation: pf-lift var(--speed,6s) ease-in-out infinite; }
-  .pf-car { animation: pf-bounce var(--speed,6s) ease-in-out infinite; }
-  .pf-fan { transform-origin:32px 32px; animation: pf-spin var(--speed,6s) linear infinite; }
-  .pf-house-pulse { animation: pf-pulse var(--speed,6s) ease-in-out infinite; }
-  .pf-extra-icon { animation: pf-bounce var(--speed,6s) ease-in-out infinite; }
+  .pf-wobble-body { transform-origin:32px 42px; animation: pf-wobble var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-zap-body { transform-origin:30px 40px; animation: pf-zap var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-arms { transform-origin:32px 22px; animation: pf-lift var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-car { transform-origin:32px 46px; animation: pf-bounce var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-wheel-l, .pf-wheel-r { transform-origin:center; animation: pf-spin calc(var(--speed,6s) * 0.5) linear infinite; }
+  .pf-bolt { transform-origin:32px 30px; animation: pf-wobble calc(var(--speed,6s) * 0.6) ease-in-out infinite; }
+  .pf-fan { transform-origin:32px 20px; animation: pf-spin var(--speed,6s) linear infinite; }
+  .pf-puff-body { transform-origin:32px 34px; animation: pf-wobble var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-cheek-l, .pf-cheek-r { animation: pf-puff var(--speed,6s) ease-in-out infinite; }
+  .pf-house-body { transform-origin:32px 53px; animation: pf-wobble var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-house-mouth { transform-origin:32px 48px; animation: pf-house-talk var(--speed,6s) ease-in-out infinite; }
+  .pf-extra-icon { animation: pf-bounce var(--speed,6s) var(--comic-ease) infinite; }
+  .pf-eye { animation: pf-blink 4.4s ease-in-out infinite; }
+  .pf-eye-r { animation-delay: 0.15s; }
 
   @media (prefers-reduced-motion: reduce) {
     .pf-svg animateMotion { display:none; }
-    .pf-sun-rays, .pf-sun-core, .pf-bolt, .pf-arms, .pf-car, .pf-fan, .pf-house-pulse, .pf-extra-icon {
+    .pf-sun-rays, .pf-wobble-body, .pf-zap-body, .pf-arms, .pf-car, .pf-wheel-l, .pf-wheel-r,
+    .pf-bolt, .pf-fan, .pf-puff-body, .pf-cheek-l, .pf-cheek-r, .pf-house-body, .pf-house-mouth,
+    .pf-extra-icon, .pf-eye {
       animation:none;
     }
   }
@@ -787,7 +846,10 @@ class LutarymPvCardEditor extends HTMLElement {
     ));
 
     sect(t(hass, 'editorMaxWatt'));
-    form.appendChild(this._numberRow(t(hass, 'editorMaxWatt'), 'max_watt', cfg.max_watt ?? 5000, t(hass, 'editorMaxWattHint')));
+    form.appendChild(this._sideBySide(
+      this._numberRow(t(hass, 'editorMaxWatt'), 'max_watt', cfg.max_watt ?? 5000, t(hass, 'editorMaxWattHint')),
+      this._numberRow(t(hass, 'editorIconSize'), 'icon_size', cfg.icon_size ?? 52, t(hass, 'editorIconSizeHint')),
+    ));
   }
 }
 
