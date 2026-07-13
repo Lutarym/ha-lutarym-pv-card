@@ -38,6 +38,13 @@
 
 // ── Simple i18n helper (falls back to English) ─────────────────────────
 
+// Bump this on every shipped change. Shown as a small "· vX" next to the
+// card title so you can visually confirm the browser actually loaded the
+// latest file, without needing devtools — if the number on screen doesn't
+// match what you just deployed, it's a cache/HACS-redownload issue, not
+// a card bug.
+const CARD_VERSION = '1.1.0';
+
 const I18N = {
   en: {
     defaultTitle: 'Power flow',
@@ -485,6 +492,7 @@ class LutarymPvCard extends HTMLElement {
   :host { display:block; width:100%; height:100%; box-sizing:border-box; font-family:'Segoe UI',Roboto,sans-serif; --comic-ease:cubic-bezier(.65,-0.45,.3,1.4); }
   ha-card { width:100%; height:100%; box-sizing:border-box; padding:16px 14px; display:flex; flex-direction:column; gap:10px; }
   .pf-title { font-size:15px; font-weight:600; letter-spacing:0.02em; color:var(--primary-text-color); }
+  .pf-version { font-size:11px; font-weight:400; color:var(--secondary-text-color); opacity:0.6; }
   .pf-stage { position:relative; width:100%; padding-top:66%; flex:1; }
   .pf-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
   .pf-node {
@@ -558,7 +566,7 @@ class LutarymPvCard extends HTMLElement {
   }
 </style>
 <ha-card>
-  <div class="pf-title">${title}</div>
+  <div class="pf-title">${title}<span class="pf-version"> · v${CARD_VERSION}</span></div>
   <div class="pf-stage">
     <svg class="pf-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
       ${svgPaths}
