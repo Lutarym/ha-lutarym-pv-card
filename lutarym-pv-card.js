@@ -291,12 +291,38 @@ function charHouse() {
   return `
     <svg class="pf-char" viewBox="0 0 64 64">
       <g class="pf-house-body">
-        <path d="M10 30 L32 11 L54 30" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="17" y="28" width="30" height="25" rx="2" fill="currentColor" opacity="0.14"/>
-        <rect x="17" y="28" width="30" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="3.5"/>
-        <circle cx="24" cy="37" r="2.6" fill="#fff"/><circle cx="24" cy="37" r="1.2" fill="#2b2b2b"/>
-        <circle cx="40" cy="37" r="2.6" fill="#fff"/><circle cx="40" cy="37" r="1.2" fill="#2b2b2b"/>
-        <rect class="pf-house-mouth" x="28" y="43" width="8" height="10" rx="1.5" fill="#2b2b2b" opacity="0.75"/>
+        <path d="M10 28 L32 10 L54 28" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="17" y="26" width="30" height="24" rx="2" fill="currentColor" opacity="0.14"/>
+        <rect x="17" y="26" width="30" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="3.5"/>
+        <circle cx="24" cy="35" r="2.4" fill="#fff"/><circle cx="24" cy="35" r="1.1" fill="#2b2b2b"/>
+        <circle cx="40" cy="35" r="2.4" fill="#fff"/><circle cx="40" cy="35" r="1.1" fill="#2b2b2b"/>
+        <rect class="pf-house-mouth" x="28" y="41" width="8" height="9" rx="1.5" fill="#2b2b2b" opacity="0.75"/>
+
+        <!-- Netzbezug: Haus fährt Fahrrad -->
+        <g class="pf-house-bike" style="display:none">
+          <line x1="17" y1="36" x2="9" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="9" y1="45" x2="16" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <g class="pf-pedal-l" style="transform-origin:24px 50px">
+            <line x1="24" y1="50" x2="19" y2="57" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g class="pf-pedal-r" style="transform-origin:36px 50px">
+            <line x1="36" y1="50" x2="41" y2="57" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g class="pf-wheel" style="transform-origin:30px 57px">
+            <circle cx="30" cy="57" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="30" y1="51" x2="30" y2="63" stroke="currentColor" stroke-width="1.2"/>
+            <line x1="24" y1="57" x2="36" y2="57" stroke="currentColor" stroke-width="1.2"/>
+          </g>
+        </g>
+
+        <!-- Einspeisung: Haus zockt -->
+        <g class="pf-house-game" style="display:none">
+          <line x1="17" y1="38" x2="24" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="47" y1="38" x2="40" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <rect x="21" y="45" width="22" height="11" rx="5" fill="currentColor"/>
+          <circle class="pf-thumb-l" cx="27" cy="50.5" r="2" fill="#fff"/>
+          <circle class="pf-thumb-r" cx="37" cy="50.5" r="2" fill="#fff"/>
+        </g>
       </g>
     </svg>`;
 }
@@ -513,6 +539,11 @@ class LutarymPvCard extends HTMLElement {
   .pf-cheek-l, .pf-cheek-r { animation: pf-puff var(--speed,6s) ease-in-out infinite; }
   .pf-house-body { transform-origin:32px 53px; animation: pf-wobble var(--speed,6s) var(--comic-ease) infinite; }
   .pf-house-mouth { transform-origin:32px 48px; animation: pf-house-talk var(--speed,6s) ease-in-out infinite; }
+  .pf-pedal-l { animation: pf-spin var(--speed,6s) linear infinite; }
+  .pf-pedal-r { animation: pf-spin var(--speed,6s) linear infinite; animation-delay: calc(var(--speed,6s) * -0.5); }
+  .pf-wheel { animation: pf-spin var(--speed,6s) linear infinite; }
+  .pf-thumb-l, .pf-thumb-r { animation: pf-thumb var(--speed,6s) ease-in-out infinite; }
+  @keyframes pf-thumb { 0%,100% { transform:translate(0,0); } 25% { transform:translate(-1.4px,-1px); } 50% { transform:translate(1px,1.4px); } 75% { transform:translate(-1px,1px); } }
   .pf-extra-icon { animation: pf-bounce var(--speed,6s) var(--comic-ease) infinite; }
   .pf-eye { animation: pf-blink 4.4s ease-in-out infinite; }
   .pf-eye-r { animation-delay: 0.15s; }
@@ -521,7 +552,7 @@ class LutarymPvCard extends HTMLElement {
     .pf-svg animateMotion { display:none; }
     .pf-sun-rays, .pf-wobble-body, .pf-zap-body, .pf-arms, .pf-car, .pf-wheel-l, .pf-wheel-r,
     .pf-bolt, .pf-fan, .pf-puff-body, .pf-cheek-l, .pf-cheek-r, .pf-house-body, .pf-house-mouth,
-    .pf-extra-icon, .pf-eye {
+    .pf-extra-icon, .pf-eye, .pf-pedal-l, .pf-pedal-r, .pf-wheel, .pf-thumb-l, .pf-thumb-r {
       animation:none;
     }
   }
@@ -616,7 +647,18 @@ class LutarymPvCard extends HTMLElement {
 
     setVal('val-house', house !== null ? this._fmt(house) : '–');
     this.shadowRoot.getElementById('node-house-circle')?.classList.toggle('pf-active', (pv || 0) > 0 || (grid || 0) !== 0);
-    setSpeed('node-house-circle', house !== null ? house : (pv || 0) + Math.abs(grid || 0));
+    const houseSpeedBasis = c.entity_grid && grid !== null ? Math.abs(grid) : (house !== null ? house : (pv || 0));
+    setSpeed('node-house-circle', houseSpeedBasis);
+
+    // Haus fährt Fahrrad bei Netzbezug (grid > 0), zockt bei Einspeisung (grid < 0).
+    const bikeEl = this.shadowRoot.querySelector('.pf-house-bike');
+    const gameEl = this.shadowRoot.querySelector('.pf-house-game');
+    if (bikeEl && gameEl) {
+      const importing = !!c.entity_grid && grid !== null && grid > 0;
+      const exporting = !!c.entity_grid && grid !== null && grid < 0;
+      bikeEl.style.display = importing ? '' : 'none';
+      gameEl.style.display = exporting ? '' : 'none';
+    }
 
     if (c.entity_pv) { setVal('val-pv', this._fmt(pv)); setActive('pv', pv > 0); setSpeed('circle-pv', pv); }
     if (c.entity_wallbox) { setVal('val-wallbox', this._fmt(wallbox)); setActive('wallbox', wallbox > 0); setSpeed('circle-wallbox', wallbox); }
