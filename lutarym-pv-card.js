@@ -469,7 +469,15 @@ const EXTRA_ICON_CHOICES = [
 
 class LutarymPvCardEditor extends HTMLElement {
   setConfig(config) { this._config = config; this._render(); }
-  set hass(hass) { this._hass = hass; this._render(); }
+  set hass(hass) {
+    this._hass = hass;
+    // Do NOT re-render the whole form here — hass updates fire constantly
+    // (every state change), and rebuilding the DOM mid-click wipes out
+    // whatever checkbox/input the user just touched before the change
+    // event can fire. Only refresh the hass reference on existing
+    // ha-selector elements, same as lutarym-pv-mood-card's editor.
+    this.querySelectorAll('ha-selector').forEach(sel => { sel.hass = hass; });
+  }
 
   _onChange(field, value) {
     this._config = { ...this._config, [field]: value === '' ? null : value };
