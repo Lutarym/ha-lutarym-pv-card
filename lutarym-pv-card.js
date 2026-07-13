@@ -43,7 +43,7 @@
 // latest file, without needing devtools — if the number on screen doesn't
 // match what you just deployed, it's a cache/HACS-redownload issue, not
 // a card bug.
-const CARD_VERSION = '1.2.0-DEBUG-BIKE-ALWAYS-ON';
+const CARD_VERSION = '1.3.0';
 
 const I18N = {
   en: {
@@ -313,22 +313,36 @@ function charHouse() {
              Hauses freistehend, damit es auch bei kleiner icon_size klar
              erkennbar bleibt (reicht absichtlich über die 64er viewBox
              hinaus; .pf-char hat overflow:visible). -->
-        <g class="pf-house-bike">
-          <line x1="17" y1="34" x2="6" y2="46" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-          <line x1="6" y1="46" x2="15" y2="46" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-          <line x1="17" y1="46" x2="47" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
-          <g class="pf-pedal-l" style="transform-origin:26px 52px">
-            <line x1="26" y1="52" x2="18" y2="61" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <g class="pf-house-bike" style="display:none">
+          <!-- Rahmen (statisch) — Sattelpunkt liegt exakt an der Hausunterkante (32,46) -->
+          <g stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+            <line x1="32" y1="46" x2="32" y2="60"/>
+            <line x1="16" y1="60" x2="32" y2="60"/>
+            <line x1="32" y1="60" x2="44" y2="40"/>
+            <line x1="32" y1="46" x2="44" y2="40"/>
+            <line x1="44" y1="40" x2="48" y2="60"/>
+            <line x1="44" y1="40" x2="44" y2="35"/>
+            <line x1="40" y1="35" x2="48" y2="35"/>
           </g>
-          <g class="pf-pedal-r" style="transform-origin:38px 52px">
-            <line x1="38" y1="52" x2="46" y2="61" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <g class="pf-bike-wheel-rear" style="transform-origin:16px 60px">
+            <circle cx="16" cy="60" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="16" y1="51" x2="16" y2="69" stroke="currentColor" stroke-width="1"/>
+            <line x1="7" y1="60" x2="25" y2="60" stroke="currentColor" stroke-width="1"/>
+            <line x1="10" y1="54" x2="22" y2="66" stroke="currentColor" stroke-width="1"/>
+            <line x1="22" y1="54" x2="10" y2="66" stroke="currentColor" stroke-width="1"/>
           </g>
-          <g class="pf-wheel" style="transform-origin:32px 61px">
-            <circle cx="32" cy="61" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/>
-            <line x1="32" y1="52" x2="32" y2="70" stroke="currentColor" stroke-width="1.4"/>
-            <line x1="23" y1="61" x2="41" y2="61" stroke="currentColor" stroke-width="1.4"/>
-            <line x1="26" y1="55" x2="38" y2="67" stroke="currentColor" stroke-width="1.2"/>
-            <line x1="38" y1="55" x2="26" y2="67" stroke="currentColor" stroke-width="1.2"/>
+          <g class="pf-bike-wheel-front" style="transform-origin:48px 60px">
+            <circle cx="48" cy="60" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="48" y1="51" x2="48" y2="69" stroke="currentColor" stroke-width="1"/>
+            <line x1="39" y1="60" x2="57" y2="60" stroke="currentColor" stroke-width="1"/>
+            <line x1="42" y1="54" x2="54" y2="66" stroke="currentColor" stroke-width="1"/>
+            <line x1="54" y1="54" x2="42" y2="66" stroke="currentColor" stroke-width="1"/>
+          </g>
+          <g class="pf-bike-crank" style="transform-origin:32px 60px">
+            <line x1="32" y1="60" x2="26" y2="65" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="32" y1="60" x2="38" y2="55" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <rect x="23" y="64" width="6" height="3" rx="1" fill="currentColor"/>
+            <rect x="35" y="53" width="6" height="3" rx="1" fill="currentColor"/>
           </g>
         </g>
 
@@ -558,9 +572,7 @@ class LutarymPvCard extends HTMLElement {
   .pf-cheek-l, .pf-cheek-r { animation: pf-puff var(--speed,6s) ease-in-out infinite; }
   .pf-house-body { transform-origin:32px 53px; animation: pf-wobble var(--speed,6s) var(--comic-ease) infinite; }
   .pf-house-mouth { transform-origin:32px 48px; animation: pf-house-talk var(--speed,6s) ease-in-out infinite; }
-  .pf-pedal-l { animation: pf-spin var(--speed,6s) linear infinite; }
-  .pf-pedal-r { animation: pf-spin var(--speed,6s) linear infinite; animation-delay: calc(var(--speed,6s) * -0.5); }
-  .pf-wheel { animation: pf-spin var(--speed,6s) linear infinite; }
+  .pf-bike-wheel-rear, .pf-bike-wheel-front, .pf-bike-crank { animation: pf-spin var(--speed,6s) linear infinite; }
   .pf-thumb-l, .pf-thumb-r { animation: pf-thumb var(--speed,6s) ease-in-out infinite; }
   @keyframes pf-thumb { 0%,100% { transform:translate(0,0); } 25% { transform:translate(-1.4px,-1px); } 50% { transform:translate(1px,1.4px); } 75% { transform:translate(-1px,1px); } }
   .pf-extra-icon { animation: pf-bounce var(--speed,6s) var(--comic-ease) infinite; }
@@ -571,7 +583,7 @@ class LutarymPvCard extends HTMLElement {
     .pf-svg animateMotion { display:none; }
     .pf-sun-rays, .pf-wobble-body, .pf-zap-body, .pf-arms, .pf-car, .pf-wheel-l, .pf-wheel-r,
     .pf-bolt, .pf-fan, .pf-puff-body, .pf-cheek-l, .pf-cheek-r, .pf-house-body, .pf-house-mouth,
-    .pf-extra-icon, .pf-eye, .pf-pedal-l, .pf-pedal-r, .pf-wheel, .pf-thumb-l, .pf-thumb-r {
+    .pf-extra-icon, .pf-eye, .pf-bike-wheel-rear, .pf-bike-wheel-front, .pf-bike-crank, .pf-thumb-l, .pf-thumb-r {
       animation:none;
     }
   }
@@ -675,8 +687,7 @@ class LutarymPvCard extends HTMLElement {
     if (bikeEl && gameEl) {
       const importing = !!c.entity_grid && grid !== null && grid > 0;
       const exporting = !!c.entity_grid && grid !== null && grid < 0;
-      bikeEl.style.display = ''; // DEBUG-BUILD: forced visible regardless of importing, see below
-      // bikeEl.style.display = importing ? '' : 'none';
+      bikeEl.style.display = importing ? '' : 'none';
       gameEl.style.display = exporting ? '' : 'none';
     }
 
