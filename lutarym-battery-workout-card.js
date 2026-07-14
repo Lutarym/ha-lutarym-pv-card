@@ -29,11 +29,15 @@
  *   icon_size: 160                                                        # optional, character size in px (default 160)
  */
 
-const CARD_VERSION = '0.4.0';
+const CARD_VERSION = '0.5.0';
 
 const MOOD_STATES = ['empty', 'weak', 'normal', 'full'];
 const MOOD_LABELS_DE = { empty: 'Leer', weak: 'Schwach', normal: 'Normal', full: 'Voll' };
 const MOOD_LABELS_EN = { empty: 'Empty', weak: 'Weak', normal: 'Normal', full: 'Full' };
+
+const CHARACTERS = ['battery', 'sun'];
+const CHARACTER_LABELS_DE = { battery: 'Batterie', sun: 'Sonne' };
+const CHARACTER_LABELS_EN = { battery: 'Battery', sun: 'Sun' };
 
 function lutarymLang(hass) {
   const raw = (hass && hass.language) || (typeof navigator !== 'undefined' ? navigator.language : 'en') || 'en';
@@ -127,6 +131,114 @@ function charBattery() {
     </svg>`;
 }
 
+// Extracted 1:1 from lutarym-pv-mood-card.js's "SUN CHARACTER" group
+// (g-sun): rotating ray rings, pulsing corona, solar flares, and a face
+// with blinking eyelids. Always shown in its full "happy" glory here —
+// this test card has no PV entity to drive mood staging, that logic
+// stays in the mood card. IDs are shadow-DOM-scoped, same as the
+// original, so multiple card instances on one dashboard don't collide.
+function charSunFull() {
+  return `
+    <svg class="pf-char pf-sun-svg" viewBox="0 0 196 210" style="overflow:visible">
+      <defs>
+        <radialGradient id="rg-sun" cx="40%" cy="36%">
+          <stop offset="0%" stop-color="#fff9b0"/>
+          <stop offset="40%" stop-color="#ffd400"/>
+          <stop offset="100%" stop-color="#ff7700"/>
+        </radialGradient>
+        <radialGradient id="rg-flare" cx="50%" cy="100%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+          <stop offset="60%" stop-color="#ffdd00" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#ff6600" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="f-sun" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="f-soft" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5"/>
+        </filter>
+      </defs>
+
+      <circle cx="98" cy="108" r="55" fill="none" stroke="#ffe040" stroke-width="2.5" opacity="0.5">
+        <animate attributeName="r" values="52;80;52" dur="3s" begin="0s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.55;0;0.55" dur="3s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="98" cy="108" r="58" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.5">
+        <animate attributeName="r" values="55;86;55" dur="3s" begin="1s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;0;0.5" dur="3s" begin="1s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="98" cy="108" r="60" fill="none" stroke="#ff8800" stroke-width="1" opacity="0.45">
+        <animate attributeName="r" values="58;90;58" dur="3s" begin="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.45;0;0.45" dur="3s" begin="2s" repeatCount="indefinite"/>
+      </circle>
+
+      <g opacity="0.85">
+        <ellipse cx="98" cy="55" rx="10" ry="26" fill="url(#rg-flare)" filter="url(#f-soft)" transform="rotate(15 98 108)"/>
+        <ellipse cx="98" cy="55" rx="8" ry="22" fill="url(#rg-flare)" filter="url(#f-soft)" transform="rotate(-25 98 108)"/>
+        <ellipse cx="98" cy="55" rx="9" ry="24" fill="url(#rg-flare)" filter="url(#f-soft)" transform="rotate(160 98 108)"/>
+      </g>
+
+      <g opacity="0.35">
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round"/>
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(45 98 108)"/>
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(90 98 108)"/>
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(135 98 108)"/>
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(180 98 108)"/>
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(225 98 108)"/>
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(270 98 108)"/>
+        <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(315 98 108)"/>
+        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 98 108" to="360 98 108" dur="22s" repeatCount="indefinite"/>
+      </g>
+
+      <g opacity="0.42">
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(22.5 98 108)"/>
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(67.5 98 108)"/>
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(112.5 98 108)"/>
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(157.5 98 108)"/>
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(202.5 98 108)"/>
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(247.5 98 108)"/>
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(292.5 98 108)"/>
+        <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(337.5 98 108)"/>
+        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 98 108" to="-360 98 108" dur="15s" repeatCount="indefinite"/>
+      </g>
+
+      <g opacity="0.5">
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(11.25 98 108)"/>
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(56.25 98 108)"/>
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(101.25 98 108)"/>
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(146.25 98 108)"/>
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(191.25 98 108)"/>
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(236.25 98 108)"/>
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(281.25 98 108)"/>
+        <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(326.25 98 108)"/>
+        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 98 108" to="360 98 108" dur="9s" repeatCount="indefinite"/>
+      </g>
+
+      <circle cx="98" cy="108" r="52" fill="url(#rg-sun)" filter="url(#f-sun)">
+        <animate attributeName="r" values="50;53;50" dur="3.5s" repeatCount="indefinite"/>
+      </circle>
+
+      <ellipse cx="58" cy="122" rx="12" ry="8" fill="#ff7043" opacity="0.55"/>
+      <ellipse cx="138" cy="122" rx="12" ry="8" fill="#ff7043" opacity="0.55"/>
+
+      <ellipse cx="78" cy="100" rx="10" ry="10" fill="white"/>
+      <ellipse cx="79" cy="101" rx="5.5" ry="5.5" fill="#1a0a00"/>
+      <ellipse cx="81" cy="98" rx="2" ry="2" fill="white"/>
+      <rect id="sun-lid-l" x="67" y="90" width="22" height="0" rx="10" fill="#ffd400"/>
+
+      <ellipse cx="118" cy="100" rx="10" ry="10" fill="white"/>
+      <ellipse cx="119" cy="101" rx="5.5" ry="5.5" fill="#1a0a00"/>
+      <ellipse cx="121" cy="98" rx="2" ry="2" fill="white"/>
+      <rect id="sun-lid-r" x="107" y="90" width="22" height="0" rx="10" fill="#ffd400"/>
+
+      <path d="M 67,87 Q 78,82 89,87" stroke="#c85a00" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M 107,87 Q 118,82 129,87" stroke="#c85a00" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+      <path d="M 76,122 Q 98,136 120,122" stroke="#c85a00" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </svg>`;
+}
+
 function charDurationFor(powerW, maxWatt) {
   const ratio = Math.max(0, Math.min(Math.abs(powerW) / Math.max(maxWatt, 1), 1));
   return (6 - ratio * 5).toFixed(2); // 6s idle → 1s energetic
@@ -149,6 +261,7 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
       threshold_empty_pct: Number(config.threshold_empty_pct) || 15,
       threshold_weak_pct: Number(config.threshold_weak_pct) || 40,
       threshold_full_pct: Number(config.threshold_full_pct) || 90,
+      character: CHARACTERS.includes(config.character) ? config.character : 'battery',
       max_watt: Number(config.max_watt) || 3000,
       icon_size: Number(config.icon_size) || 160,
     };
@@ -231,12 +344,32 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
 </style>
 <ha-card>
   <div class="pf-title">${title} <span class="pf-version">· v${CARD_VERSION}</span></div>
-  ${charBattery()}
+  ${c.character === 'sun' ? charSunFull() : charBattery()}
   <div class="pf-value" id="val-battery">–</div>
   <div class="pf-debug" id="pf-debug">–</div>
 </ha-card>
     `;
+    this._startBlink();
     this._update();
+  }
+
+  // Blink cadence copied 1:1 from lutarym-pv-mood-card's _startBlink —
+  // only has an effect while the sun character is selected (no-op
+  // otherwise, since #sun-lid-l/#sun-lid-r won't exist in the DOM).
+  _startBlink() {
+    if (this._blinkTimer) clearInterval(this._blinkTimer);
+    this._blinkTimer = setInterval(() => {
+      if (this._config?.character !== 'sun') return;
+      const lL = this.shadowRoot.getElementById('sun-lid-l');
+      const lR = this.shadowRoot.getElementById('sun-lid-r');
+      if (!lL || !lR) return;
+      lL.setAttribute('height', '20'); lR.setAttribute('height', '20');
+      setTimeout(() => { lL.setAttribute('height', '0'); lR.setAttribute('height', '0'); }, 110);
+    }, 2800 + Math.random() * 2200);
+  }
+
+  disconnectedCallback() {
+    if (this._blinkTimer) clearInterval(this._blinkTimer);
   }
 
   _update() {
@@ -270,7 +403,7 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
     if (val) val.textContent = soc !== null || dis !== null || chg !== null ? `${socTxt}${flowTxt}` : '–';
 
     const dbg = this.shadowRoot.getElementById('pf-debug');
-    if (dbg) dbg.textContent = `dis=${dis} chg=${chg} soc=${soc} mood=${mood} speed=${charDurationFor(speedBasis, c.max_watt)}s`;
+    if (dbg) dbg.textContent = `character=${c.character} dis=${dis} chg=${chg} soc=${soc} mood=${mood} speed=${charDurationFor(speedBasis, c.max_watt)}s`;
   }
 }
 
@@ -374,6 +507,7 @@ class LutarymBatteryWorkoutCardEditor extends HTMLElement {
     const cfg = this._config;
     const lang = lutarymLang(this._hass);
     const moodLabels = lang === 'de' ? MOOD_LABELS_DE : MOOD_LABELS_EN;
+    const characterLabels = lang === 'de' ? CHARACTER_LABELS_DE : CHARACTER_LABELS_EN;
 
     this.innerHTML = `
       <style>
@@ -393,6 +527,8 @@ class LutarymBatteryWorkoutCardEditor extends HTMLElement {
       <div class="form"></div>
     `;
     const form = this.querySelector('.form');
+    form.appendChild(this._selectRow(
+      lang === 'de' ? 'Charakter' : 'Character', 'character', cfg.character || 'battery', CHARACTERS, characterLabels));
     form.appendChild(this._toggleableEntityRow(
       lang === 'de' ? 'Entladeleistung-Entity' : 'Discharge power entity', 'entity_discharge_power', cfg.entity_discharge_power));
     form.appendChild(this._toggleableEntityRow(
@@ -400,13 +536,13 @@ class LutarymBatteryWorkoutCardEditor extends HTMLElement {
     form.appendChild(this._toggleableEntityRow(
       lang === 'de' ? 'Ladezustand-Entity (SOC, %)' : 'State of charge entity (%)', 'entity_soc', cfg.entity_soc));
     form.appendChild(this._selectRow(
-      lang === 'de' ? 'Batterie-Zustand (für zukünftige Animationen)' : 'Battery mood (reserved for future animations)',
+      lang === 'de' ? 'Batterie-Zustand (manueller Override ohne SOC-Entity)' : 'Battery mood (manual override without SOC entity)',
       'mood_state', cfg.mood_state || 'normal', MOOD_STATES, moodLabels));
     const hint = document.createElement('div');
     hint.className = 'hint';
     hint.textContent = lang === 'de'
-      ? 'Wird aktuell noch nicht ausgewertet — Platzhalter für kommende Zustands-Animationen.'
-      : 'Not evaluated yet — placeholder for upcoming mood-driven animations.';
+      ? 'Wird nur verwendet, wenn keine Ladezustand-Entity gesetzt ist — sonst bestimmt der SOC-Wert den Zustand automatisch.'
+      : 'Only used when no state-of-charge entity is set — otherwise the SOC value determines the mood automatically.';
     form.appendChild(hint);
     form.appendChild(this._numberRow(lang === 'de' ? 'Schwelle „leer" (%)' : 'Empty threshold (%)', 'threshold_empty_pct', cfg.threshold_empty_pct ?? 15));
     form.appendChild(this._numberRow(lang === 'de' ? 'Schwelle „wenig" (%)' : 'Weak threshold (%)', 'threshold_weak_pct', cfg.threshold_weak_pct ?? 40));

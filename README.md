@@ -20,7 +20,19 @@ sensor) — feed whichever your battery integration exposes. Animation
 speed scales with whichever of discharge/charge is currently higher,
 relative to `max_watt`.
 
-## Mood state (SOC-driven)
+## Character selection
+
+The `character` dropdown in the visual editor picks between:
+
+- **`battery`** (default) — the weightlifting battery with its four SOC-driven moods (see below)
+- **`sun`** — the sun character extracted 1:1 from
+  [`lutarym-pv-mood-card`](https://github.com/Lutarym/lutarym-pv-mood-card)'s
+  "happy" state: rotating ray rings, pulsing corona, solar flares, and a
+  blinking face. Shown permanently in full glory here — this test card
+  has no PV entity to drive mood staging (that logic stays in the mood
+  card itself).
+
+## Mood state (SOC-driven, battery character only)
 
 Four states, auto-derived from `entity_soc` against three thresholds
 (`threshold_empty_pct` default 15, `threshold_weak_pct` default 40,
