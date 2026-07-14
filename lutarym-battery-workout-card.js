@@ -29,7 +29,7 @@
  *   icon_size: 160                                                        # optional, character size in px (default 160)
  */
 
-const CARD_VERSION = '0.5.0';
+const CARD_VERSION = '0.6.0';
 
 const MOOD_STATES = ['empty', 'weak', 'normal', 'full'];
 const MOOD_LABELS_DE = { empty: 'Leer', weak: 'Schwach', normal: 'Normal', full: 'Voll' };
@@ -38,6 +38,16 @@ const MOOD_LABELS_EN = { empty: 'Empty', weak: 'Weak', normal: 'Normal', full: '
 const CHARACTERS = ['battery', 'sun'];
 const CHARACTER_LABELS_DE = { battery: 'Batterie', sun: 'Sonne' };
 const CHARACTER_LABELS_EN = { battery: 'Battery', sun: 'Sun' };
+
+const SUN_STATES = ['night', 'sad', 'awake', 'happy', 'laughing'];
+const SUN_STATE_LABELS_DE = {
+  night: '🌙 Nacht (schläft)', sad: '🌧️ Traurige Wolke', awake: '☀️ Wach (klein)',
+  happy: '😄 Fröhlich (mittel)', laughing: '🎉 Lachend (voll)',
+};
+const SUN_STATE_LABELS_EN = {
+  night: '🌙 Night (sleeping)', sad: '🌧️ Sad cloud', awake: '☀️ Awake (small)',
+  happy: '😄 Happy (medium)', laughing: '🎉 Laughing (full)',
+};
 
 function lutarymLang(hass) {
   const raw = (hass && hass.language) || (typeof navigator !== 'undefined' ? navigator.language : 'en') || 'en';
@@ -137,9 +147,9 @@ function charBattery() {
 // this test card has no PV entity to drive mood staging, that logic
 // stays in the mood card. IDs are shadow-DOM-scoped, same as the
 // original, so multiple card instances on one dashboard don't collide.
-function charSunFull() {
+function charSunFull(stateClass) {
   return `
-    <svg class="pf-char pf-sun-svg" viewBox="0 0 196 210" style="overflow:visible">
+    <svg class="pf-char pf-sun-svg ${stateClass || 'pf-sun-state-laughing'}" viewBox="0 0 196 210" style="overflow:visible">
       <defs>
         <radialGradient id="rg-sun" cx="40%" cy="36%">
           <stop offset="0%" stop-color="#fff9b0"/>
@@ -160,26 +170,26 @@ function charSunFull() {
         </filter>
       </defs>
 
-      <circle cx="98" cy="108" r="55" fill="none" stroke="#ffe040" stroke-width="2.5" opacity="0.5">
+      <circle class="pf-sun-corona" cx="98" cy="108" r="55" fill="none" stroke="#ffe040" stroke-width="2.5" opacity="0.5">
         <animate attributeName="r" values="52;80;52" dur="3s" begin="0s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.55;0;0.55" dur="3s" begin="0s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="98" cy="108" r="58" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.5">
+      <circle class="pf-sun-corona" cx="98" cy="108" r="58" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.5">
         <animate attributeName="r" values="55;86;55" dur="3s" begin="1s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.5;0;0.5" dur="3s" begin="1s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="98" cy="108" r="60" fill="none" stroke="#ff8800" stroke-width="1" opacity="0.45">
+      <circle class="pf-sun-corona" cx="98" cy="108" r="60" fill="none" stroke="#ff8800" stroke-width="1" opacity="0.45">
         <animate attributeName="r" values="58;90;58" dur="3s" begin="2s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.45;0;0.45" dur="3s" begin="2s" repeatCount="indefinite"/>
       </circle>
 
-      <g opacity="0.85">
+      <g class="pf-sun-flares" opacity="0.85">
         <ellipse cx="98" cy="55" rx="10" ry="26" fill="url(#rg-flare)" filter="url(#f-soft)" transform="rotate(15 98 108)"/>
         <ellipse cx="98" cy="55" rx="8" ry="22" fill="url(#rg-flare)" filter="url(#f-soft)" transform="rotate(-25 98 108)"/>
         <ellipse cx="98" cy="55" rx="9" ry="24" fill="url(#rg-flare)" filter="url(#f-soft)" transform="rotate(160 98 108)"/>
       </g>
 
-      <g opacity="0.35">
+      <g class="pf-sun-rays" opacity="0.35">
         <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round"/>
         <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(45 98 108)"/>
         <line x1="98" y1="8" x2="98" y2="32" stroke="#ffe040" stroke-width="4" stroke-linecap="round" transform="rotate(90 98 108)"/>
@@ -191,7 +201,7 @@ function charSunFull() {
         <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 98 108" to="360 98 108" dur="22s" repeatCount="indefinite"/>
       </g>
 
-      <g opacity="0.42">
+      <g class="pf-sun-rays" opacity="0.42">
         <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(22.5 98 108)"/>
         <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(67.5 98 108)"/>
         <line x1="98" y1="22" x2="98" y2="44" stroke="#ffdd00" stroke-width="3.5" stroke-linecap="round" transform="rotate(112.5 98 108)"/>
@@ -203,7 +213,7 @@ function charSunFull() {
         <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 98 108" to="-360 98 108" dur="15s" repeatCount="indefinite"/>
       </g>
 
-      <g opacity="0.5">
+      <g class="pf-sun-rays" opacity="0.5">
         <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(11.25 98 108)"/>
         <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(56.25 98 108)"/>
         <line x1="98" y1="36" x2="98" y2="50" stroke="#ffcc00" stroke-width="2.5" stroke-linecap="round" transform="rotate(101.25 98 108)"/>
@@ -215,12 +225,12 @@ function charSunFull() {
         <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 98 108" to="360 98 108" dur="9s" repeatCount="indefinite"/>
       </g>
 
-      <circle cx="98" cy="108" r="52" fill="url(#rg-sun)" filter="url(#f-sun)">
+      <circle class="pf-sun-core" cx="98" cy="108" r="52" fill="url(#rg-sun)" filter="url(#f-sun)">
         <animate attributeName="r" values="50;53;50" dur="3.5s" repeatCount="indefinite"/>
       </circle>
 
-      <ellipse cx="58" cy="122" rx="12" ry="8" fill="#ff7043" opacity="0.55"/>
-      <ellipse cx="138" cy="122" rx="12" ry="8" fill="#ff7043" opacity="0.55"/>
+      <ellipse class="pf-sun-cheek" cx="58" cy="122" rx="12" ry="8" fill="#ff7043" opacity="0.55"/>
+      <ellipse class="pf-sun-cheek" cx="138" cy="122" rx="12" ry="8" fill="#ff7043" opacity="0.55"/>
 
       <ellipse cx="78" cy="100" rx="10" ry="10" fill="white"/>
       <ellipse cx="79" cy="101" rx="5.5" ry="5.5" fill="#1a0a00"/>
@@ -262,6 +272,7 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
       threshold_weak_pct: Number(config.threshold_weak_pct) || 40,
       threshold_full_pct: Number(config.threshold_full_pct) || 90,
       character: CHARACTERS.includes(config.character) ? config.character : 'battery',
+      sun_state: SUN_STATES.includes(config.sun_state) ? config.sun_state : 'laughing',
       max_watt: Number(config.max_watt) || 3000,
       icon_size: Number(config.icon_size) || 160,
     };
@@ -338,13 +349,44 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
   .pf-eye { animation: pf-blink 4.4s ease-in-out infinite; }
   .pf-eye-r { animation-delay: 0.15s; }
 
+  /* Sun mood states — mirrors lutarym-pv-mood-card's night/sad/awake/happy/laughing
+     staging, applied as opacity/display levels on the same artwork (no
+     separate moon/cloud groups here — those stay in the mood card).
+     Corona/flares use display (not opacity) because they already have
+     their own SMIL opacity-pulse animation; overriding opacity via CSS
+     would permanently freeze that animation instead of just hiding it. */
+  .pf-sun-corona, .pf-sun-flares { display:none; }
+  .pf-sun-cheek { opacity:0; transition: opacity 0.8s ease; }
+  .pf-sun-rays { transition: opacity 0.8s ease; }
+  .pf-sun-core { transition: opacity 0.8s ease; }
+
+  .pf-sun-state-night .pf-sun-core { opacity:0.2; }
+  .pf-sun-state-night .pf-sun-rays { opacity:0 !important; }
+
+  .pf-sun-state-sad .pf-sun-core { opacity:0.4; }
+  .pf-sun-state-sad .pf-sun-rays { opacity:0.1 !important; }
+
+  .pf-sun-state-awake .pf-sun-core { opacity:0.75; }
+  .pf-sun-state-awake .pf-sun-rays { opacity:0.25 !important; }
+
+  .pf-sun-state-happy .pf-sun-core { opacity:1; }
+  .pf-sun-state-happy .pf-sun-rays { opacity:0.55 !important; }
+  .pf-sun-state-happy .pf-sun-corona { display:block; }
+  .pf-sun-state-happy .pf-sun-cheek { opacity:0.55; }
+
+  .pf-sun-state-laughing .pf-sun-core { opacity:1; }
+  .pf-sun-state-laughing .pf-sun-rays { opacity:0.8 !important; }
+  .pf-sun-state-laughing .pf-sun-corona { display:block; }
+  .pf-sun-state-laughing .pf-sun-flares { display:block; }
+  .pf-sun-state-laughing .pf-sun-cheek { opacity:0.55; }
+
   @media (prefers-reduced-motion: reduce) {
     .pf-wobble-body, .pf-wobble-body.pf-mood-empty, .pf-wobble-body.pf-mood-full, .pf-arms, .pf-arms-weak, .pf-eye { animation:none; }
   }
 </style>
 <ha-card>
   <div class="pf-title">${title} <span class="pf-version">· v${CARD_VERSION}</span></div>
-  ${c.character === 'sun' ? charSunFull() : charBattery()}
+  ${c.character === 'sun' ? charSunFull(`pf-sun-state-${c.sun_state}`) : charBattery()}
   <div class="pf-value" id="val-battery">–</div>
   <div class="pf-debug" id="pf-debug">–</div>
 </ha-card>
@@ -379,6 +421,12 @@ class LutarymBatteryWorkoutCard extends HTMLElement {
     const chg = this._val(c.entity_charge_power);
     const soc = this._val(c.entity_soc);
     const mood = this._computeMood();
+
+    const sunSvg = this.shadowRoot.querySelector('.pf-sun-svg');
+    if (sunSvg) {
+      SUN_STATES.forEach(s => sunSvg.classList.remove(`pf-sun-state-${s}`));
+      sunSvg.classList.add(`pf-sun-state-${c.sun_state}`);
+    }
 
     const speedBasis = Math.max(dis || 0, chg || 0);
     const charEl = this.shadowRoot.querySelector('.pf-char');
@@ -508,6 +556,7 @@ class LutarymBatteryWorkoutCardEditor extends HTMLElement {
     const lang = lutarymLang(this._hass);
     const moodLabels = lang === 'de' ? MOOD_LABELS_DE : MOOD_LABELS_EN;
     const characterLabels = lang === 'de' ? CHARACTER_LABELS_DE : CHARACTER_LABELS_EN;
+    const sunStateLabels = lang === 'de' ? SUN_STATE_LABELS_DE : SUN_STATE_LABELS_EN;
 
     this.innerHTML = `
       <style>
@@ -529,6 +578,9 @@ class LutarymBatteryWorkoutCardEditor extends HTMLElement {
     const form = this.querySelector('.form');
     form.appendChild(this._selectRow(
       lang === 'de' ? 'Charakter' : 'Character', 'character', cfg.character || 'battery', CHARACTERS, characterLabels));
+    form.appendChild(this._selectRow(
+      lang === 'de' ? 'Sonnen-Animation (nur bei Charakter „Sonne")' : 'Sun animation (only when character is "Sun")',
+      'sun_state', cfg.sun_state || 'laughing', SUN_STATES, sunStateLabels));
     form.appendChild(this._toggleableEntityRow(
       lang === 'de' ? 'Entladeleistung-Entity' : 'Discharge power entity', 'entity_discharge_power', cfg.entity_discharge_power));
     form.appendChild(this._toggleableEntityRow(

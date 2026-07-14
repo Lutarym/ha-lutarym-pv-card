@@ -28,9 +28,26 @@ The `character` dropdown in the visual editor picks between:
 - **`sun`** — the sun character extracted 1:1 from
   [`lutarym-pv-mood-card`](https://github.com/Lutarym/lutarym-pv-mood-card)'s
   "happy" state: rotating ray rings, pulsing corona, solar flares, and a
-  blinking face. Shown permanently in full glory here — this test card
-  has no PV entity to drive mood staging (that logic stays in the mood
-  card itself).
+  blinking face.
+
+## Sun animation control
+
+`sun_state` (dropdown, only relevant when `character: sun`) controls ray
+opacity, corona, flares, and cheek blush across five stages — the same
+five names as the mood card's auto-staging, but manually selected here
+since this test card has no PV entity:
+
+| `sun_state` | Rays | Corona | Flares | Cheeks |
+|---|---|---|---|---|
+| `night` | hidden | hidden | hidden | hidden |
+| `sad` | barely visible | hidden | hidden | hidden |
+| `awake` | dim | hidden | hidden | hidden |
+| `happy` | normal | pulsing | hidden | visible |
+| `laughing` (default) | full | pulsing | visible | visible |
+
+Note: this only varies the *existing* sun artwork's intensity — it does
+not draw the separate moon/night-sky or sad-cloud artwork from the mood
+card, since those weren't part of "the sun" that got extracted here.
 
 ## Mood state (SOC-driven, battery character only)
 
